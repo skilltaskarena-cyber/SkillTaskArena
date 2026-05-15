@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Users — CampusFreelance Admin</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/user.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+<div class="app-layout admin-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-mark">🛡️</div>
+      <div class="sidebar-logo-text">Campus<span>Admin</span></div>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-user-card">
+        <div class="avatar" id="sidebarAvatar">?</div>
+        <div class="sidebar-user-info">
+          <h4 id="sidebarName">Loading...</h4>
+          <p id="sidebarRole">—</p>
+        </div>
+      </div>
+      <div style="margin-top:8px"><span class="admin-badge-chip">🛡 Admin Panel</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Overview</span>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a>
+      <span class="nav-section-label">Manage</span>
+      <a href="users.html" class="nav-item active"><span class="nav-icon">👥</span><span class="nav-label">Users</span></a>
+      <a href="tasks.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-label">Tasks</span></a>
+      <a href="post-requests.html" class="nav-item"><span class="nav-icon">📝</span><span class="nav-label">Post Requests</span></a>
+      <a href="audit-log.html" class="nav-item"><span class="nav-icon">📜</span><span class="nav-label">Audit Log</span></a>
+    </nav>
+    <div class="sidebar-bottom">
+      <button class="nav-item logout" onclick="signOut()" style="width:100%;text-align:left">
+        <span class="nav-icon">🚪</span><span class="nav-label">Sign Out</span>
+      </button>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <main class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('show')">☰</button>
+        <div class="page-title">User Management</div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-primary btn-sm" onclick="openModal('topupBatchModal')">💰 Batch Top-up</button>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <!-- FILTER BAR -->
+      <div class="filter-bar" style="margin-bottom:20px">
+        <div class="search-bar" style="flex:1;min-width:200px">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="userSearch" placeholder="Search by name or email...">
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Role:</span>
+          <select id="roleFilter" class="form-select" style="width:160px;padding:8px 12px">
+            <option value="">All Roles</option>
+            <option value="student">Students</option>
+            <option value="teaching_staff">Teaching Staff</option>
+            <option value="nonteaching_staff">Non-Teaching</option>
+            <option value="external">External</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Status:</span>
+          <select id="statusFilter" class="form-select" style="width:140px;padding:8px 12px">
+            <option value="">All</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="suspended">Suspended</option>
+          </select>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="loadUsers()">↺ Refresh</button>
+      </div>
+
+      <!-- USERS TABLE -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">All Users</span>
+          <span id="userCountLabel" style="font-size:13px;color:var(--text-muted)">Loading...</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Role</th>
+                <th>Credits</th>
+                <th>Tasks</th>
+                <th>Post Privilege</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="usersTableBody">
+              <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted)">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- USER DETAIL / TOP-UP MODAL -->
+<div class="modal-overlay" id="userModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <h3 class="modal-title" id="userModalTitle">User Actions</h3>
+      <button class="modal-close">✕</button>
+    </div>
+    <div id="userModalContent"></div>
+  </div>
+</div>
+
+<!-- BATCH TOP-UP MODAL -->
+<div class="modal-overlay" id="topupBatchModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title">💰 Batch Credit Top-up</h3>
+      <button class="modal-close">✕</button>
+    </div>
+    <div class="alert alert-info" style="margin-bottom:20px">
+      Top-up all users of a selected role at once.
+    </div>
+    <div class="form-group">
+      <label class="form-label">Target Role</label>
+      <select id="batchRole" class="form-select">
+        <option value="">Select role</option>
+        <option value="student">All Students</option>
+        <option value="teaching_staff">All Teaching Staff</option>
+        <option value="nonteaching_staff">All Non-Teaching Staff</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Amount (CP per user)</label>
+      <input type="number" id="batchAmount" class="form-input" placeholder="e.g. 50" min="1">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Note</label>
+      <input type="text" id="batchNote" class="form-input" placeholder="e.g. Semester start allocation">
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closeModal('topupBatchModal')">Cancel</button>
+      <button class="btn btn-primary" id="batchTopupBtn" onclick="doBatchTopup()">💰 Apply Top-up</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="../js/firebase-config.js"></script>
+<script src="../js/utils.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/credits.js"></script>
+<script src="../js/admin.js"></script>
+<script>
+  requireAdmin();
+
+  let allUsers = [];
+
+  window.onUserReady = async function(userData) {
+    populateSidebarUser(userData);
+    await loadUsers();
+    applyQueryFilters();
+  };
+
+  function applyQueryFilters() {
+    const filter = getParam('filter');
+    if (filter === 'pending') {
+      document.getElementById('statusFilter').value = 'pending';
+      filterUsers();
+    }
+  }
+
+  async function loadUsers() {
+    document.getElementById('usersTableBody').innerHTML =
+      '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted)">Loading...</td></tr>';
+    try {
+      allUsers = await loadAllUsers();
+      filterUsers();
+    } catch(e) {
+      document.getElementById('usersTableBody').innerHTML =
+        `<tr><td colspan="7" class="alert alert-error">Failed to load users: ${e.message}</td></tr>`;
+    }
+  }
+
+  function filterUsers() {
+    const search = document.getElementById('userSearch').value.toLowerCase();
+    const role   = document.getElementById('roleFilter').value;
+    const status = document.getElementById('statusFilter').value;
+
+    let filtered = allUsers;
+    if (role)   filtered = filtered.filter(u => u.role === role);
+    if (search) filtered = filtered.filter(u =>
+      u.name?.toLowerCase().includes(search) || u.email?.toLowerCase().includes(search));
+    if (status === 'pending')   filtered = filtered.filter(u => !u.isApproved);
+    if (status === 'approved')  filtered = filtered.filter(u => u.isApproved && !u.isSuspended);
+    if (status === 'suspended') filtered = filtered.filter(u => u.isSuspended);
+
+    document.getElementById('userCountLabel').textContent = `${filtered.length} users`;
+    renderUsersTable(filtered);
+  }
+
+  function renderUsersTable(users) {
+    if (!users.length) {
+      document.getElementById('usersTableBody').innerHTML =
+        '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted)">No users found</td></tr>';
+      return;
+    }
+    document.getElementById('usersTableBody').innerHTML = users.map(u => `
+      <tr>
+        <td>
+          <div class="user-avatar-row">
+            <div class="avatar avatar-sm" style="background:${stringToColor(u.name)}">${getInitials(u.name)}</div>
+            <div class="user-name-col">
+              <h4>${u.name}</h4>
+              <p>${u.email}</p>
+            </div>
+          </div>
+        </td>
+        <td>${roleHTML(u.role)}</td>
+        <td>
+          <span class="credit-chip" style="font-size:12px;padding:3px 10px">
+            💰 ${u.creditsAvailable || 0}
+          </span>
+        </td>
+        <td><span style="font-size:14px;font-weight:600">${u.completedTasks || 0}</span></td>
+        <td>
+          ${AUTO_POST_ROLES.includes(u.role)
+            ? '<span class="badge badge-blue">Auto</span>'
+            : u.canPost
+              ? '<span class="badge badge-green">✅ Granted</span>'
+              : '<span class="badge badge-gray">None</span>'}
+        </td>
+        <td>
+          ${u.isSuspended
+            ? '<span class="badge badge-red">🚫 Suspended</span>'
+            : u.isApproved
+              ? '<span class="badge badge-green">✅ Active</span>'
+              : '<span class="badge badge-yellow">⏳ Pending</span>'}
+        </td>
+        <td>
+          <div class="action-btns">
+            ${!u.isApproved && !u.isSuspended
+              ? `<button class="btn btn-success btn-sm" onclick="doApprove('${u.id}')">✓</button>` : ''}
+            ${!u.isSuspended
+              ? `<button class="btn btn-danger btn-sm" onclick="openSuspend('${u.id}','${u.name}')">🚫</button>`
+              : `<button class="btn btn-ghost btn-sm" onclick="doUnsuspend('${u.id}')">↩</button>`}
+            ${!u.canPost && !AUTO_POST_ROLES.includes(u.role)
+              ? `<button class="btn btn-ghost btn-sm" onclick="doGrantPrivilege('${u.id}')" title="Grant post privilege">🔓</button>`
+              : !AUTO_POST_ROLES.includes(u.role)
+                ? `<button class="btn btn-ghost btn-sm" onclick="doRevokePrivilege('${u.id}')" title="Revoke privilege">🔒</button>`
+                : ''}
+            <button class="btn btn-ghost btn-sm" onclick="openTopup('${u.id}','${u.name}')">💰</button>
+          </div>
+        </td>
+      </tr>`).join('');
+  }
+
+  // Search/filter events
+  document.getElementById('userSearch').addEventListener('input', debounce(filterUsers, 200));
+  document.getElementById('roleFilter').addEventListener('change', filterUsers);
+  document.getElementById('statusFilter').addEventListener('change', filterUsers);
+
+  // ACTIONS
+  async function doApprove(userId) {
+    try { await approveUser(currentUserData.id, userId); showToast('User approved!','success'); await loadUsers(); }
+    catch(e) { showToast(e.message,'error'); }
+  }
+
+  function openSuspend(userId, name) {
+    document.getElementById('userModalTitle').textContent = `Suspend ${name}`;
+    document.getElementById('userModalContent').innerHTML = `
+      <div class="form-group">
+        <label class="form-label">Reason for Suspension</label>
+        <textarea id="suspendReason" class="form-textarea" placeholder="Explain why this user is being suspended..."></textarea>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button class="btn btn-ghost" onclick="closeModal('userModal')">Cancel</button>
+        <button class="btn btn-danger" onclick="doSuspend('${userId}')">🚫 Suspend User</button>
+      </div>`;
+    openModal('userModal');
+  }
+
+  async function doSuspend(userId) {
+    const reason = document.getElementById('suspendReason').value;
+    try {
+      await suspendUser(currentUserData.id, userId, reason);
+      closeModal('userModal'); showToast('User suspended.','info'); await loadUsers();
+    } catch(e) { showToast(e.message,'error'); }
+  }
+
+  async function doUnsuspend(userId) {
+    try { await unsuspendUser(currentUserData.id, userId); showToast('User reinstated.','success'); await loadUsers(); }
+    catch(e) { showToast(e.message,'error'); }
+  }
+
+  async function doGrantPrivilege(userId) {
+    try { await grantPostPrivilege(currentUserData.id, userId); showToast('Privilege granted!','success'); await loadUsers(); }
+    catch(e) { showToast(e.message,'error'); }
+  }
+
+  async function doRevokePrivilege(userId) {
+    try { await revokePostPrivilege(currentUserData.id, userId); showToast('Privilege revoked.','info'); await loadUsers(); }
+    catch(e) { showToast(e.message,'error'); }
+  }
+
+  function openTopup(userId, name) {
+    document.getElementById('userModalTitle').textContent = `Top-up Credits for ${name}`;
+    document.getElementById('userModalContent').innerHTML = `
+      <div class="form-group">
+        <label class="form-label">Amount (CP)</label>
+        <input type="number" id="topupAmt" class="form-input" placeholder="e.g. 100" min="1">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Note</label>
+        <input type="text" id="topupNote" class="form-input" placeholder="e.g. Semester allocation">
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button class="btn btn-ghost" onclick="closeModal('userModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="doTopup('${userId}')">💰 Add Credits</button>
+      </div>`;
+    openModal('userModal');
+  }
+
+  async function doTopup(userId) {
+    const amount = parseInt(document.getElementById('topupAmt').value);
+    const note   = document.getElementById('topupNote').value || 'Admin allocation';
+    if (!amount || amount < 1) { showToast('Enter a valid amount.','warning'); return; }
+    try {
+      await adminTopUp(currentUserData.id, userId, amount, note);
+      closeModal('userModal'); showToast(`${amount} CP added!`,'success'); await loadUsers();
+    } catch(e) { showToast(e.message,'error'); }
+  }
+
+  async function doBatchTopup() {
+    const role   = document.getElementById('batchRole').value;
+    const amount = parseInt(document.getElementById('batchAmount').value);
+    const note   = document.getElementById('batchNote').value || 'Batch allocation';
+    if (!role)   { showToast('Select a role.','warning'); return; }
+    if (!amount) { showToast('Enter an amount.','warning'); return; }
+
+    const btn = document.getElementById('batchTopupBtn');
+    setLoading(btn, true, 'Processing...');
+    try {
+      const users = allUsers.filter(u => u.role === role && u.isApproved && !u.isSuspended);
+      for (const u of users) {
+        await adminTopUp(currentUserData.id, u.id, amount, note);
+      }
+      closeModal('topupBatchModal');
+      showToast(`${amount} CP added to ${users.length} users!`, 'success');
+      await loadUsers();
+    } catch(e) { showToast(e.message,'error'); }
+    setLoading(btn, false, '💰 Apply Top-up');
+  }
+</script>
+</body>
+</html>
