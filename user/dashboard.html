@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — CampusFreelance</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/user.css">
+</head>
+<body>
+<div class="app-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-mark">🎓</div>
+      <div class="sidebar-logo-text">Campus<span>Freelance</span></div>
+    </div>
+
+    <div class="sidebar-user">
+      <div class="sidebar-user-card">
+        <div class="avatar sidebar-avatar" id="sidebarAvatar">?</div>
+        <div class="sidebar-user-info">
+          <h4 id="sidebarName">Loading...</h4>
+          <p id="sidebarRole">—</p>
+        </div>
+      </div>
+      <div class="sidebar-credits">💰 <span id="sidebarCredits">— CP</span></div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Main</span>
+      <a href="dashboard.html" class="nav-item active">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-label">Dashboard</span>
+      </a>
+      <a href="browse-tasks.html" class="nav-item">
+        <span class="nav-icon">📋</span>
+        <span class="nav-label">Browse Tasks</span>
+      </a>
+      <a href="post-task.html" class="nav-item">
+        <span class="nav-icon">➕</span>
+        <span class="nav-label">Post a Task</span>
+      </a>
+      <a href="my-tasks.html" class="nav-item">
+        <span class="nav-icon">📁</span>
+        <span class="nav-label">My Tasks</span>
+      </a>
+
+      <span class="nav-section-label">Account</span>
+      <a href="profile.html" class="nav-item">
+        <span class="nav-icon">👤</span>
+        <span class="nav-label">Profile</span>
+      </a>
+      <a href="notifications.html" class="nav-item" id="notifNav">
+        <span class="nav-icon">🔔</span>
+        <span class="nav-label">Notifications</span>
+        <span class="nav-badge" id="notifBadge" style="display:none">0</span>
+      </a>
+      <a href="wallet.html" class="nav-item">
+        <span class="nav-icon">💰</span>
+        <span class="nav-label">Wallet</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <button class="nav-item logout" onclick="signOut()" style="width:100%;text-align:left">
+        <span class="nav-icon">🚪</span>
+        <span class="nav-label">Sign Out</span>
+      </button>
+    </div>
+  </aside>
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- MAIN -->
+  <main class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('show')">☰</button>
+        <div>
+          <div class="page-title">Dashboard</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-notif" onclick="window.location.href='notifications.html'">
+          🔔
+          <span class="notif-dot" id="notifDot" style="display:none"></span>
+        </div>
+        <div class="credit-chip">💰 <span id="topbarCredits">—</span></div>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <!-- WELCOME BANNER -->
+      <div class="welcome-banner">
+        <div class="welcome-text">
+          <h2>Hey <span id="welcomeName">—</span> 👋</h2>
+          <p id="welcomeSub">Loading your dashboard...</p>
+        </div>
+        <div class="welcome-cta">
+          <a href="browse-tasks.html" class="btn btn-primary">Browse Tasks →</a>
+        </div>
+      </div>
+
+      <!-- APPROVAL NOTICE -->
+      <div id="approvalNotice" class="alert alert-warning" style="display:none;margin-bottom:20px">
+        ⏳ Your account is pending admin approval. You can browse tasks but can't apply yet.
+      </div>
+
+      <!-- STATS -->
+      <div class="stats-row" id="statsRow">
+        <div class="stat-card">
+          <div class="stat-icon orange">📋</div>
+          <div class="stat-info">
+            <div class="stat-value" id="statOpenTasks">—</div>
+            <div class="stat-label">Open Tasks</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon blue">📁</div>
+          <div class="stat-info">
+            <div class="stat-value" id="statMyTasks">—</div>
+            <div class="stat-label">My Active Tasks</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">✅</div>
+          <div class="stat-info">
+            <div class="stat-value" id="statCompleted">—</div>
+            <div class="stat-label">Completed</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon purple">💰</div>
+          <div class="stat-info">
+            <div class="stat-value" id="statCredits">—</div>
+            <div class="stat-label">Credits Available</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MAIN GRID -->
+      <div class="dashboard-grid">
+
+        <!-- LEFT -->
+        <div class="dashboard-left">
+
+          <!-- QUICK ACTIONS -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Quick Actions</span>
+            </div>
+            <div class="quick-actions">
+              <button class="quick-action-btn" onclick="window.location.href='browse-tasks.html'">
+                <div class="quick-action-icon">📋</div>
+                <span class="quick-action-label">Browse Tasks</span>
+              </button>
+              <button class="quick-action-btn" onclick="window.location.href='post-task.html'">
+                <div class="quick-action-icon">➕</div>
+                <span class="quick-action-label">Post Task</span>
+              </button>
+              <button class="quick-action-btn" onclick="window.location.href='my-tasks.html'">
+                <div class="quick-action-icon">📁</div>
+                <span class="quick-action-label">My Tasks</span>
+              </button>
+              <button class="quick-action-btn" onclick="window.location.href='wallet.html'">
+                <div class="quick-action-icon">💰</div>
+                <span class="quick-action-label">Wallet</span>
+              </button>
+              <button class="quick-action-btn" onclick="window.location.href='profile.html'">
+                <div class="quick-action-icon">⭐</div>
+                <span class="quick-action-label">My Profile</span>
+              </button>
+              <button class="quick-action-btn" onclick="window.location.href='browse-tasks.html?type=event'">
+                <div class="quick-action-icon">🎪</div>
+                <span class="quick-action-label">Events</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- RECENT TASKS -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Recent Open Tasks</span>
+              <a href="browse-tasks.html" class="btn btn-ghost btn-sm">View All</a>
+            </div>
+            <div id="recentTasksList">
+              <div class="empty-state">
+                <div class="empty-state-icon">⏳</div>
+                <h3>Loading tasks...</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT -->
+        <div class="dashboard-right">
+
+          <!-- MY ACTIVE TASKS -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">My Active</span>
+              <a href="my-tasks.html" class="btn btn-ghost btn-sm">All</a>
+            </div>
+            <div id="myActiveTasks">
+              <div style="text-align:center;padding:24px;color:var(--text-muted);font-size:14px">Loading...</div>
+            </div>
+          </div>
+
+          <!-- NOTIFICATIONS PREVIEW -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">🔔 Notifications</span>
+              <a href="notifications.html" class="btn btn-ghost btn-sm">All</a>
+            </div>
+            <div class="notif-list" id="notifList">
+              <div style="text-align:center;padding:24px;color:var(--text-muted);font-size:14px">Loading...</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<div class="toast-container"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="../js/firebase-config.js"></script>
+<script src="../js/utils.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/tasks.js"></script>
+<script src="../js/credits.js"></script>
+<script>
+  requireAuth();
+
+  window.onUserReady = async function(userData) {
+    if (!userData) return;
+
+    // Populate UI
+    populateSidebarUser(userData);
+
+    document.getElementById('welcomeName').textContent = userData.name.split(' ')[0];
+    document.getElementById('topbarCredits').textContent = formatCredits(userData.creditsAvailable);
+
+    const roleInfo = ROLE_INFO[userData.role] || {};
+    document.getElementById('welcomeSub').textContent =
+      `${roleInfo.icon || ''} ${roleInfo.label || userData.role} • ${userData.department || 'No department'}`;
+
+    if (!userData.isApproved) {
+      document.getElementById('approvalNotice').style.display = 'flex';
+    }
+
+    // Stats
+    document.getElementById('statCompleted').textContent = userData.completedTasks || 0;
+    document.getElementById('statCredits').textContent   = userData.creditsAvailable || 0;
+
+    // Load data in parallel
+    await Promise.all([
+      loadRecentTasks(),
+      loadMyActive(userData.id),
+      loadNotifPreview(userData.id)
+    ]);
+  };
+
+  async function loadRecentTasks() {
+    try {
+      const tasks = await loadOpenTasks({ limit: 5 });
+      document.getElementById('statOpenTasks').textContent = tasks.length + (tasks.length === 5 ? '+' : '');
+
+      if (!tasks.length) {
+        document.getElementById('recentTasksList').innerHTML =
+          emptyStateHTML('📋', 'No tasks yet', 'Be the first to post one!', 'Browse Tasks', "window.location.href='browse-tasks.html'");
+        return;
+      }
+
+      document.getElementById('recentTasksList').innerHTML = tasks
+        .map(t => renderTaskCard(t, currentUserData))
+        .join('');
+    } catch(e) {
+      document.getElementById('recentTasksList').innerHTML =
+        '<div class="alert alert-error">Failed to load tasks.</div>';
+    }
+  }
+
+  async function loadMyActive(userId) {
+    try {
+      const [posted, assigned] = await Promise.all([
+        loadMyPostedTasks(userId),
+        loadMyAssignedTasks(userId)
+      ]);
+
+      const active = [...posted, ...assigned].filter(t =>
+        [TASK_STATUS.OPEN, TASK_STATUS.IN_PROGRESS, TASK_STATUS.REVIEW].includes(t.status)
+      );
+
+      document.getElementById('statMyTasks').textContent = active.length;
+
+      if (!active.length) {
+        document.getElementById('myActiveTasks').innerHTML =
+          '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px">No active tasks</div>';
+        return;
+      }
+
+      document.getElementById('myActiveTasks').innerHTML = active.slice(0, 4).map(t => `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-light)">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.title}</div>
+            <div style="font-size:12px;color:var(--text-muted)">${t.reward} CP</div>
+          </div>
+          ${statusHTML(t.status)}
+        </div>
+      `).join('');
+    } catch(e) { console.error(e); }
+  }
+
+  async function loadNotifPreview(userId) {
+    try {
+      const snap = await NOTIFICATIONS()
+        .where('userId', '==', userId)
+        .orderBy('createdAt', 'desc')
+        .limit(4)
+        .get();
+
+      const notifs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const unread = notifs.filter(n => !n.isRead).length;
+
+      if (unread > 0) {
+        document.getElementById('notifDot').style.display = 'block';
+        document.getElementById('notifBadge').style.display = 'flex';
+        document.getElementById('notifBadge').textContent = unread;
+      }
+
+      if (!notifs.length) {
+        document.getElementById('notifList').innerHTML =
+          '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px">No notifications</div>';
+        return;
+      }
+
+      document.getElementById('notifList').innerHTML = notifs.map(n => `
+        <div class="notif-item ${n.isRead ? '' : 'unread'}">
+          <div class="notif-icon">🔔</div>
+          <div class="notif-text">
+            <p>${n.message}</p>
+            <span>${timeAgo(n.createdAt)}</span>
+          </div>
+        </div>
+      `).join('');
+    } catch(e) { console.error(e); }
+  }
+
+  // Global applyTask/applyEvent from tasks.js
+  window.applyTask = (taskId) => window.location.href = `browse-tasks.html?apply=${taskId}`;
+  window.applyEvent = (taskId) => window.location.href = `browse-tasks.html?apply=${taskId}&type=event`;
+</script>
+</body>
+</html>

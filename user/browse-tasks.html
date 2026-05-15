@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Browse Tasks — CampusFreelance</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/user.css">
+</head>
+<body>
+<div class="app-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-mark">🎓</div>
+      <div class="sidebar-logo-text">Campus<span>Freelance</span></div>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-user-card">
+        <div class="avatar" id="sidebarAvatar">?</div>
+        <div class="sidebar-user-info">
+          <h4 id="sidebarName">Loading...</h4>
+          <p id="sidebarRole">—</p>
+        </div>
+      </div>
+      <div class="sidebar-credits">💰 <span id="sidebarCredits">—</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Main</span>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">🏠</span><span class="nav-label">Dashboard</span></a>
+      <a href="browse-tasks.html" class="nav-item active"><span class="nav-icon">📋</span><span class="nav-label">Browse Tasks</span></a>
+      <a href="post-task.html" class="nav-item"><span class="nav-icon">➕</span><span class="nav-label">Post a Task</span></a>
+      <a href="my-tasks.html" class="nav-item"><span class="nav-icon">📁</span><span class="nav-label">My Tasks</span></a>
+      <span class="nav-section-label">Account</span>
+      <a href="profile.html" class="nav-item"><span class="nav-icon">👤</span><span class="nav-label">Profile</span></a>
+      <a href="notifications.html" class="nav-item"><span class="nav-icon">🔔</span><span class="nav-label">Notifications</span></a>
+      <a href="wallet.html" class="nav-item"><span class="nav-icon">💰</span><span class="nav-label">Wallet</span></a>
+    </nav>
+    <div class="sidebar-bottom">
+      <button class="nav-item logout" onclick="signOut()" style="width:100%;text-align:left">
+        <span class="nav-icon">🚪</span><span class="nav-label">Sign Out</span>
+      </button>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- MAIN -->
+  <main class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('show')">☰</button>
+        <div class="page-title">Browse Tasks</div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-notif" onclick="window.location.href='notifications.html'">🔔</div>
+        <div class="credit-chip">💰 <span id="topbarCredits">—</span></div>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <!-- FILTER BAR -->
+      <div class="filter-bar">
+        <div class="search-bar" style="flex:1;min-width:200px">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="searchInput" placeholder="Search tasks by title or description...">
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Type:</span>
+          <button class="tag active" data-filter="type" data-value="">All</button>
+          <button class="tag" data-filter="type" data-value="task">Tasks</button>
+          <button class="tag" data-filter="type" data-value="event">Events 🎪</button>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Sort:</span>
+          <select id="sortSelect" class="form-select" style="width:140px;padding:8px 12px">
+            <option value="newest">Newest</option>
+            <option value="reward_high">Highest Reward</option>
+            <option value="reward_low">Lowest Reward</option>
+            <option value="deadline">Deadline Soon</option>
+          </select>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="resetFilters()">↺ Reset</button>
+      </div>
+
+      <!-- TAG FILTER ROW -->
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px" id="tagFilters">
+        <span style="font-size:13px;color:var(--text-muted);margin-top:4px">Filter by tag:</span>
+      </div>
+
+      <!-- RESULTS COUNT -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <span style="font-size:14px;color:var(--text-muted)">Showing <strong id="resultCount">—</strong> tasks</span>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" id="viewGrid" onclick="setView('grid')" title="Grid view">⊞</button>
+          <button class="btn btn-ghost btn-sm" id="viewList" onclick="setView('list')" title="List view">≡</button>
+        </div>
+      </div>
+
+      <!-- TASK GRID -->
+      <div class="task-grid" id="tasksContainer">
+        <div class="empty-state" style="grid-column:1/-1">
+          <div class="empty-state-icon">⏳</div>
+          <h3>Loading tasks...</h3>
+        </div>
+      </div>
+
+      <!-- LOAD MORE -->
+      <div style="text-align:center;margin-top:32px">
+        <button class="btn btn-ghost" id="loadMoreBtn" style="display:none" onclick="loadMore()">
+          Load More Tasks
+        </button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- APPLY MODAL -->
+<div class="modal-overlay" id="applyModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title" id="applyModalTitle">Apply for Task</h3>
+      <button class="modal-close">✕</button>
+    </div>
+    <div id="applyTaskDetail" style="margin-bottom:20px"></div>
+    <div class="form-group">
+      <label class="form-label">Message to Poster <span style="color:var(--text-light)">(optional)</span></label>
+      <textarea id="applyMessage" class="form-textarea" placeholder="Tell them why you're a good fit..."></textarea>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closeModal('applyModal')">Cancel</button>
+      <button class="btn btn-primary" id="applySubmitBtn" onclick="submitApplication()">📝 Apply Now</button>
+    </div>
+  </div>
+</div>
+
+<!-- EVENT APPLY MODAL -->
+<div class="modal-overlay" id="eventApplyModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title">Apply to Join Event</h3>
+      <button class="modal-close">✕</button>
+    </div>
+    <div id="eventApplyDetail" style="margin-bottom:20px"></div>
+    <div class="form-group">
+      <label class="form-label">Why do you want to join?</label>
+      <textarea id="eventApplyMessage" class="form-textarea" placeholder="Tell the lead collaborators why you'd be a great addition..."></textarea>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closeModal('eventApplyModal')">Cancel</button>
+      <button class="btn btn-primary" id="eventApplySubmitBtn" onclick="submitEventApplication()">🎪 Apply to Join</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="../js/firebase-config.js"></script>
+<script src="../js/utils.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/tasks.js"></script>
+<script>
+  requireAuth();
+
+  let allTasks = [];
+  let filteredTasks = [];
+  let activeFilters = { type: '', tags: [], search: '' };
+  let currentTaskId = null;
+  let currentView = 'grid';
+  const PAGE_SIZE = 12;
+  let page = 1;
+
+  window.onUserReady = async function(userData) {
+    populateSidebarUser(userData);
+    document.getElementById('topbarCredits').textContent = formatCredits(userData.creditsAvailable);
+    await fetchTasks();
+    checkAutoApply();
+  };
+
+  async function fetchTasks() {
+    try {
+      allTasks = await loadOpenTasks({ limit: 100 });
+      buildTagCloud();
+      applyFilters();
+    } catch(e) {
+      document.getElementById('tasksContainer').innerHTML =
+        '<div class="alert alert-error" style="grid-column:1/-1">Failed to load tasks. Check Firebase config.</div>';
+    }
+  }
+
+  function buildTagCloud() {
+    const tagCounts = {};
+    allTasks.forEach(t => (t.tags || []).forEach(tag => tagCounts[tag] = (tagCounts[tag] || 0) + 1));
+    const sorted = Object.entries(tagCounts).sort((a,b) => b[1]-a[1]).slice(0,12);
+    const container = document.getElementById('tagFilters');
+    sorted.forEach(([tag, count]) => {
+      const btn = document.createElement('button');
+      btn.className = 'tag';
+      btn.textContent = `${tag} (${count})`;
+      btn.dataset.tag = tag;
+      btn.onclick = () => toggleTagFilter(tag, btn);
+      container.appendChild(btn);
+    });
+  }
+
+  function toggleTagFilter(tag, btn) {
+    const idx = activeFilters.tags.indexOf(tag);
+    if (idx > -1) { activeFilters.tags.splice(idx, 1); btn.classList.remove('active'); }
+    else          { activeFilters.tags.push(tag);       btn.classList.add('active'); }
+    applyFilters();
+  }
+
+  // TYPE FILTER BUTTONS
+  document.querySelectorAll('[data-filter="type"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-filter="type"]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeFilters.type = btn.dataset.value;
+      applyFilters();
+    });
+  });
+
+  // SEARCH
+  document.getElementById('searchInput').addEventListener('input', debounce(e => {
+    activeFilters.search = e.target.value;
+    applyFilters();
+  }, 250));
+
+  // SORT
+  document.getElementById('sortSelect').addEventListener('change', () => applyFilters());
+
+  function applyFilters() {
+    let result = [...allTasks];
+
+    if (activeFilters.type)      result = result.filter(t => t.type === activeFilters.type);
+    if (activeFilters.tags.length) result = result.filter(t =>
+      activeFilters.tags.some(tag => t.tags?.includes(tag)));
+    if (activeFilters.search) {
+      const s = activeFilters.search.toLowerCase();
+      result = result.filter(t =>
+        t.title?.toLowerCase().includes(s) || t.description?.toLowerCase().includes(s));
+    }
+
+    const sort = document.getElementById('sortSelect').value;
+    if (sort === 'reward_high') result.sort((a,b) => b.reward - a.reward);
+    if (sort === 'reward_low')  result.sort((a,b) => a.reward - b.reward);
+    if (sort === 'deadline')    result.sort((a,b) => {
+      const da = a.deadline?.toDate?.()?.getTime() || Infinity;
+      const db = b.deadline?.toDate?.()?.getTime() || Infinity;
+      return da - db;
+    });
+
+    filteredTasks = result;
+    page = 1;
+    renderTasks();
+  }
+
+  function renderTasks() {
+    const container = document.getElementById('tasksContainer');
+    const visible   = filteredTasks.slice(0, page * PAGE_SIZE);
+    document.getElementById('resultCount').textContent = filteredTasks.length;
+
+    if (!visible.length) {
+      container.innerHTML = `<div style="grid-column:1/-1">${emptyStateHTML('📭', 'No tasks found', 'Try adjusting your filters or search term.')}</div>`;
+      document.getElementById('loadMoreBtn').style.display = 'none';
+      return;
+    }
+
+    container.className = currentView === 'list'
+      ? 'task-list-view' : 'task-grid';
+    container.innerHTML = visible.map(t =>
+      renderTaskCard(t, currentUserData)
+    ).join('');
+
+    document.getElementById('loadMoreBtn').style.display =
+      filteredTasks.length > page * PAGE_SIZE ? 'inline-flex' : 'none';
+  }
+
+  function loadMore() { page++; renderTasks(); }
+
+  function setView(v) {
+    currentView = v;
+    document.getElementById('viewGrid').style.background = v === 'grid' ? 'var(--accent-soft)' : '';
+    document.getElementById('viewList').style.background = v === 'list' ? 'var(--accent-soft)' : '';
+    renderTasks();
+  }
+
+  function resetFilters() {
+    activeFilters = { type: '', tags: [], search: '' };
+    document.getElementById('searchInput').value = '';
+    document.querySelectorAll('[data-filter="type"]')[0].click();
+    document.querySelectorAll('.tag-filter.active').forEach(b => b.classList.remove('active'));
+    document.getElementById('sortSelect').value = 'newest';
+    applyFilters();
+  }
+
+  // Check if URL has ?apply=taskId
+  function checkAutoApply() {
+    const applyId = getParam('apply');
+    if (applyId) window.applyTask(applyId);
+  }
+
+  // APPLY TASK
+  window.applyTask = async (taskId) => {
+    if (!currentUserData?.isApproved) {
+      showToast('Your account must be approved to apply.', 'warning'); return;
+    }
+    currentTaskId = taskId;
+    const task = allTasks.find(t => t.id === taskId);
+    if (!task) {
+      // Fetch from firestore
+      const snap = await TASKS().doc(taskId).get();
+      if (!snap.exists) { showToast('Task not found.', 'error'); return; }
+      const t = { id: snap.id, ...snap.data() };
+      document.getElementById('applyTaskDetail').innerHTML = taskDetailHTML(t);
+    } else {
+      document.getElementById('applyTaskDetail').innerHTML = taskDetailHTML(task);
+    }
+    document.getElementById('applyModalTitle').textContent = `Apply for Task`;
+    document.getElementById('applyMessage').value = '';
+    openModal('applyModal');
+  };
+
+  async function submitApplication() {
+    const message = document.getElementById('applyMessage').value;
+    const btn = document.getElementById('applySubmitBtn');
+    setLoading(btn, true, 'Applying...');
+    try {
+      await applyForTask(currentTaskId, currentUserData.id, message);
+      closeModal('applyModal');
+      showToast('Application submitted!', 'success');
+    } catch(e) {
+      showToast(e.message, 'error');
+    }
+    setLoading(btn, false, '📝 Apply Now');
+  }
+
+  // APPLY EVENT
+  window.applyEvent = async (taskId) => {
+    if (!currentUserData?.isApproved) {
+      showToast('Your account must be approved to apply.', 'warning'); return;
+    }
+    currentTaskId = taskId;
+    const task = allTasks.find(t => t.id === taskId);
+    if (task) document.getElementById('eventApplyDetail').innerHTML = taskDetailHTML(task);
+    document.getElementById('eventApplyMessage').value = '';
+    openModal('eventApplyModal');
+  };
+
+  async function submitEventApplication() {
+    const message = document.getElementById('eventApplyMessage').value;
+    const btn = document.getElementById('eventApplySubmitBtn');
+    setLoading(btn, true, 'Applying...');
+    try {
+      await applyForEvent(currentTaskId, currentUserData.id, message);
+      closeModal('eventApplyModal');
+      showToast('Event application submitted!', 'success');
+    } catch(e) {
+      showToast(e.message, 'error');
+    }
+    setLoading(btn, false, '🎪 Apply to Join');
+  }
+
+  function taskDetailHTML(task) {
+    return `
+      <div style="padding:14px;background:var(--bg);border-radius:var(--radius-md);border:1px solid var(--border)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+          <div>
+            <div style="font-weight:700;font-size:15px;font-family:var(--font-head)">${task.title}</div>
+            <div style="font-size:13px;color:var(--text-muted);margin-top:4px">${(task.description||'').slice(0,120)}...</div>
+          </div>
+          <div class="task-reward">${task.reward}<small> CP</small></div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap">
+          ${statusHTML(task.status)}
+          ${(task.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('')}
+        </div>
+      </div>`;
+  }
+</script>
+</body>
+</html>

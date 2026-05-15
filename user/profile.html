@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile — CampusFreelance</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/user.css">
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-mark">🎓</div>
+      <div class="sidebar-logo-text">Campus<span>Freelance</span></div>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-user-card">
+        <div class="avatar" id="sidebarAvatar">?</div>
+        <div class="sidebar-user-info">
+          <h4 id="sidebarName">Loading...</h4>
+          <p id="sidebarRole">—</p>
+        </div>
+      </div>
+      <div class="sidebar-credits">💰 <span id="sidebarCredits">—</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Main</span>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">🏠</span><span class="nav-label">Dashboard</span></a>
+      <a href="browse-tasks.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-label">Browse Tasks</span></a>
+      <a href="post-task.html" class="nav-item"><span class="nav-icon">➕</span><span class="nav-label">Post a Task</span></a>
+      <a href="my-tasks.html" class="nav-item"><span class="nav-icon">📁</span><span class="nav-label">My Tasks</span></a>
+      <span class="nav-section-label">Account</span>
+      <a href="profile.html" class="nav-item active"><span class="nav-icon">👤</span><span class="nav-label">Profile</span></a>
+      <a href="notifications.html" class="nav-item"><span class="nav-icon">🔔</span><span class="nav-label">Notifications</span></a>
+      <a href="wallet.html" class="nav-item"><span class="nav-icon">💰</span><span class="nav-label">Wallet</span></a>
+    </nav>
+    <div class="sidebar-bottom">
+      <button class="nav-item logout" onclick="signOut()" style="width:100%;text-align:left">
+        <span class="nav-icon">🚪</span><span class="nav-label">Sign Out</span>
+      </button>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <main class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('show')">☰</button>
+        <div class="page-title">My Profile</div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-notif" onclick="window.location.href='notifications.html'">🔔</div>
+        <div class="credit-chip">💰 <span id="topbarCredits">—</span></div>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <!-- PROFILE HERO -->
+      <div class="profile-hero" id="profileHero">
+        <div class="profile-avatar-wrap">
+          <div class="avatar profile-avatar" id="profileAvatar">?</div>
+          <div class="profile-verified">✓</div>
+        </div>
+        <div class="profile-info" style="flex:1">
+          <h2 id="profileName">—</h2>
+          <p id="profileMeta">—</p>
+          <div class="profile-badges" id="profileBadges"></div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:10px">
+            <span id="profileStars"></span>
+            <span style="font-size:13px;color:rgba(255,255,255,0.6)" id="profileRatingCount"></span>
+          </div>
+        </div>
+        <div class="profile-stats">
+          <div class="profile-stat">
+            <div class="profile-stat-value" id="statCompleted">—</div>
+            <div class="profile-stat-label">Completed</div>
+          </div>
+          <div class="profile-stat">
+            <div class="profile-stat-value" id="statEarned">—</div>
+            <div class="profile-stat-label">CP Earned</div>
+          </div>
+          <div class="profile-stat">
+            <div class="profile-stat-value" id="statPosted">—</div>
+            <div class="profile-stat-label">Posted</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EDIT PROFILE -->
+      <div class="grid-2" style="margin-bottom:24px">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">📋 Account Info</span>
+            <button class="btn btn-ghost btn-sm" onclick="toggleEdit()">✏️ Edit</button>
+          </div>
+          <div id="profileView">
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div class="user-row">
+                <span style="font-size:18px">👤</span>
+                <div class="user-row-info"><h4>Full Name</h4><p id="infoName">—</p></div>
+              </div>
+              <div class="user-row">
+                <span style="font-size:18px">✉</span>
+                <div class="user-row-info"><h4>Email</h4><p id="infoEmail">—</p></div>
+              </div>
+              <div class="user-row">
+                <span style="font-size:18px">🏢</span>
+                <div class="user-row-info"><h4>Department</h4><p id="infoDept">—</p></div>
+              </div>
+              <div class="user-row">
+                <span style="font-size:18px">🪪</span>
+                <div class="user-row-info"><h4>College ID</h4><p id="infoCollegeId">—</p></div>
+              </div>
+              <div class="user-row">
+                <span style="font-size:18px">📅</span>
+                <div class="user-row-info"><h4>Joined</h4><p id="infoJoined">—</p></div>
+              </div>
+            </div>
+          </div>
+          <div id="profileEdit" style="display:none">
+            <div class="form-group">
+              <label class="form-label">Full Name</label>
+              <input type="text" id="editName" class="form-input">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Department</label>
+              <select id="editDept" class="form-select">
+                <option value="computer_science">Computer Science</option>
+                <option value="engineering">Engineering</option>
+                <option value="arts">Arts & Humanities</option>
+                <option value="commerce">Commerce</option>
+                <option value="sciences">Sciences</option>
+                <option value="management">Management</option>
+                <option value="administration">Administration</option>
+                <option value="external">External / Other</option>
+              </select>
+            </div>
+            <div style="display:flex;gap:10px">
+              <button class="btn btn-primary btn-sm" onclick="saveProfile()">Save Changes</button>
+              <button class="btn btn-ghost btn-sm" onclick="toggleEdit()">Cancel</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- BADGES -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">🏆 Badges & Status</span>
+          </div>
+          <div id="badgesList" style="display:flex;flex-wrap:wrap;gap:10px"></div>
+          <div style="margin-top:20px">
+            <div style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--text-muted)">POSTING PRIVILEGE</div>
+            <div id="postPrivilegeStatus"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RATINGS RECEIVED -->
+      <div class="card" style="margin-bottom:24px">
+        <div class="card-header">
+          <span class="card-title">⭐ Ratings Received</span>
+          <div id="avgRatingDisplay"></div>
+        </div>
+        <div id="ratingsList">
+          <div style="text-align:center;padding:24px;color:var(--text-muted)">Loading ratings...</div>
+        </div>
+      </div>
+
+      <!-- COMPLETED TASKS HISTORY -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">✅ Task History</span>
+        </div>
+        <div id="taskHistory">
+          <div style="text-align:center;padding:24px;color:var(--text-muted)">Loading history...</div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+<div class="toast-container"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="../js/firebase-config.js"></script>
+<script src="../js/utils.js"></script>
+<script src="../js/auth.js"></script>
+<script>
+  requireAuth();
+
+  window.onUserReady = async function(userData) {
+    populateSidebarUser(userData);
+    document.getElementById('topbarCredits').textContent = formatCredits(userData.creditsAvailable);
+
+    // Hero
+    const avEl = document.getElementById('profileAvatar');
+    avEl.textContent = getInitials(userData.name);
+    avEl.style.background = stringToColor(userData.name);
+    document.getElementById('profileName').textContent = userData.name;
+    document.getElementById('profileMeta').textContent =
+      `${ROLE_INFO[userData.role]?.label || userData.role} • ${userData.department || '—'} • ${userData.collegeId || ''}`;
+
+    document.getElementById('profileStars').innerHTML = starsHTML(userData.rating || 0);
+    document.getElementById('profileRatingCount').textContent =
+      userData.ratingCount ? `${userData.rating?.toFixed(1)} avg (${userData.ratingCount} ratings)` : 'No ratings yet';
+
+    document.getElementById('statCompleted').textContent = userData.completedTasks || 0;
+    document.getElementById('statEarned').textContent    = (userData.creditsEarned || 0).toLocaleString();
+
+    // Posted count
+    const postedSnap = await TASKS().where('postedBy', '==', userData.id).get();
+    document.getElementById('statPosted').textContent = postedSnap.size;
+
+    // Info panel
+    document.getElementById('infoName').textContent     = userData.name;
+    document.getElementById('infoEmail').textContent    = userData.email;
+    document.getElementById('infoDept').textContent     = userData.department || '—';
+    document.getElementById('infoCollegeId').textContent = userData.collegeId || '—';
+    document.getElementById('infoJoined').textContent   = formatDate(userData.createdAt);
+
+    // Edit defaults
+    document.getElementById('editName').value = userData.name;
+    document.getElementById('editDept').value = userData.department || '';
+
+    // Posting privilege
+    const privEl = document.getElementById('postPrivilegeStatus');
+    if (AUTO_POST_ROLES.includes(userData.role)) {
+      privEl.innerHTML = '<span class="badge badge-green">✅ Auto-approved (your role)</span>';
+    } else if (userData.canPost) {
+      privEl.innerHTML = '<span class="badge badge-green">✅ Posting privilege granted</span>';
+    } else {
+      privEl.innerHTML = `
+        <span class="badge badge-yellow">⏳ No posting privilege</span>
+        <div style="margin-top:8px">
+          <a href="post-task.html" class="btn btn-ghost btn-sm">Request Privilege →</a>
+        </div>`;
+    }
+
+    // Badges
+    buildBadges(userData);
+
+    // Load ratings & history
+    await Promise.all([
+      loadRatings(userData.id),
+      loadTaskHistory(userData.id)
+    ]);
+  };
+
+  function buildBadges(u) {
+    const badges = [];
+    if (u.completedTasks >= 1)   badges.push({ icon: '🚀', label: 'First Task',     color: 'orange' });
+    if (u.completedTasks >= 5)   badges.push({ icon: '⚡', label: '5 Tasks Done',   color: 'blue'   });
+    if (u.completedTasks >= 20)  badges.push({ icon: '🔥', label: 'Power User',     color: 'red'    });
+    if (u.rating >= 4.5)         badges.push({ icon: '⭐', label: 'Top Rated',      color: 'yellow' });
+    if (u.creditsEarned >= 500)  badges.push({ icon: '💎', label: 'High Earner',    color: 'purple' });
+    if (u.canPost)               badges.push({ icon: '✅', label: 'Verified Poster', color: 'green'  });
+
+    const hero = document.getElementById('profileBadges');
+    const list = document.getElementById('badgesList');
+
+    if (!badges.length) {
+      list.innerHTML = '<p style="color:var(--text-muted);font-size:14px">Complete tasks to earn badges!</p>';
+      return;
+    }
+
+    hero.innerHTML = badges.slice(0,3).map(b =>
+      `<span class="badge badge-${b.color}">${b.icon} ${b.label}</span>`
+    ).join('');
+    list.innerHTML = badges.map(b =>
+      `<div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--bg);border-radius:var(--radius-md);border:1px solid var(--border)">
+        <span style="font-size:22px">${b.icon}</span>
+        <span style="font-size:13px;font-weight:700">${b.label}</span>
+       </div>`
+    ).join('');
+  }
+
+  async function loadRatings(userId) {
+    const snap = await RATINGS().where('toUser', '==', userId).orderBy('createdAt', 'desc').limit(10).get();
+    if (snap.empty) {
+      document.getElementById('ratingsList').innerHTML =
+        '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:14px">No ratings yet. Complete tasks to get rated!</div>';
+      return;
+    }
+
+    const total = snap.docs.reduce((s, d) => s + d.data().score, 0);
+    const avg   = total / snap.size;
+    document.getElementById('avgRatingDisplay').innerHTML =
+      `${starsHTML(Math.round(avg))} <span style="font-weight:700">${avg.toFixed(1)}</span> <span style="color:var(--text-muted);font-size:13px">(${snap.size})</span>`;
+
+    const rows = await Promise.all(snap.docs.map(async d => {
+      const data = d.data();
+      const userSnap = await USERS().doc(data.fromUser).get();
+      const from = userSnap.exists ? userSnap.data() : null;
+      return { ...data, fromName: from?.name || 'Anonymous' };
+    }));
+
+    document.getElementById('ratingsList').innerHTML = rows.map(r => `
+      <div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--border-light)">
+        <div class="avatar avatar-sm" style="background:${stringToColor(r.fromName)}">${getInitials(r.fromName)}</div>
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span style="font-weight:600;font-size:14px">${r.fromName}</span>
+            ${starsHTML(r.score)}
+          </div>
+          ${r.comment ? `<p style="font-size:13px;color:var(--text-muted)">"${r.comment}"</p>` : ''}
+          <span style="font-size:11px;color:var(--text-light)">${timeAgo(r.createdAt)}</span>
+        </div>
+      </div>`).join('');
+  }
+
+  async function loadTaskHistory(userId) {
+    const snap = await TASKS()
+      .where('assignedTo', '==', userId)
+      .where('status', '==', TASK_STATUS.COMPLETED)
+      .orderBy('completedAt', 'desc')
+      .limit(10)
+      .get();
+
+    if (snap.empty) {
+      document.getElementById('taskHistory').innerHTML =
+        '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:14px">No completed tasks yet.</div>';
+      return;
+    }
+
+    document.getElementById('taskHistory').innerHTML = snap.docs.map(d => {
+      const t = d.data();
+      return `
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border-light)">
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:14px">${t.title}</div>
+            <div style="font-size:12px;color:var(--text-muted)">${formatDate(t.completedAt)}</div>
+          </div>
+          <span class="badge badge-green">+${t.reward} CP</span>
+        </div>`;
+    }).join('');
+  }
+
+  function toggleEdit() {
+    const view = document.getElementById('profileView');
+    const edit = document.getElementById('profileEdit');
+    view.style.display = view.style.display === 'none' ? '' : 'none';
+    edit.style.display = edit.style.display === 'none' ? '' : 'none';
+  }
+
+  async function saveProfile() {
+    const name = document.getElementById('editName').value.trim();
+    const dept = document.getElementById('editDept').value;
+    if (!name) { showToast('Name cannot be empty.', 'warning'); return; }
+    try {
+      await USERS().doc(currentUserData.id).update({ name, department: dept });
+      await currentUser.updateProfile({ displayName: name });
+      showToast('Profile updated!', 'success');
+      toggleEdit();
+      document.getElementById('profileName').textContent = name;
+      document.getElementById('infoName').textContent    = name;
+      document.getElementById('infoDept').textContent    = dept;
+    } catch(e) { showToast(e.message, 'error'); }
+  }
+</script>
+</body>
+</html>

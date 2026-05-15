@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Tasks — CampusFreelance</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/user.css">
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-mark">🎓</div>
+      <div class="sidebar-logo-text">Campus<span>Freelance</span></div>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-user-card">
+        <div class="avatar" id="sidebarAvatar">?</div>
+        <div class="sidebar-user-info">
+          <h4 id="sidebarName">Loading...</h4>
+          <p id="sidebarRole">—</p>
+        </div>
+      </div>
+      <div class="sidebar-credits">💰 <span id="sidebarCredits">—</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Main</span>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">🏠</span><span class="nav-label">Dashboard</span></a>
+      <a href="browse-tasks.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-label">Browse Tasks</span></a>
+      <a href="post-task.html" class="nav-item"><span class="nav-icon">➕</span><span class="nav-label">Post a Task</span></a>
+      <a href="my-tasks.html" class="nav-item active"><span class="nav-icon">📁</span><span class="nav-label">My Tasks</span></a>
+      <span class="nav-section-label">Account</span>
+      <a href="profile.html" class="nav-item"><span class="nav-icon">👤</span><span class="nav-label">Profile</span></a>
+      <a href="notifications.html" class="nav-item"><span class="nav-icon">🔔</span><span class="nav-label">Notifications</span></a>
+      <a href="wallet.html" class="nav-item"><span class="nav-icon">💰</span><span class="nav-label">Wallet</span></a>
+    </nav>
+    <div class="sidebar-bottom">
+      <button class="nav-item logout" onclick="signOut()" style="width:100%;text-align:left">
+        <span class="nav-icon">🚪</span><span class="nav-label">Sign Out</span>
+      </button>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <main class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('show')">☰</button>
+        <div class="page-title">My Tasks</div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-notif" onclick="window.location.href='notifications.html'">🔔</div>
+        <div class="credit-chip">💰 <span id="topbarCredits">—</span></div>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <!-- TABS -->
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="tab-posted">📤 Posted Tasks</button>
+        <button class="tab-btn" data-tab="tab-assigned">📥 Assigned to Me</button>
+        <button class="tab-btn" data-tab="tab-events">🎪 My Events</button>
+        <button class="tab-btn" data-tab="tab-applications">📝 Applications</button>
+      </div>
+
+      <!-- POSTED -->
+      <div class="tab-content active" id="tab-posted">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
+          <a href="post-task.html" class="btn btn-primary btn-sm">➕ Post New Task</a>
+        </div>
+        <div id="postedList">
+          <div class="empty-state"><div class="empty-state-icon">⏳</div><h3>Loading...</h3></div>
+        </div>
+      </div>
+
+      <!-- ASSIGNED -->
+      <div class="tab-content" id="tab-assigned">
+        <div id="assignedList">
+          <div class="empty-state"><div class="empty-state-icon">⏳</div><h3>Loading...</h3></div>
+        </div>
+      </div>
+
+      <!-- EVENTS -->
+      <div class="tab-content" id="tab-events">
+        <div id="eventsList">
+          <div class="empty-state"><div class="empty-state-icon">⏳</div><h3>Loading...</h3></div>
+        </div>
+      </div>
+
+      <!-- APPLICATIONS -->
+      <div class="tab-content" id="tab-applications">
+        <div id="applicationsList">
+          <div class="empty-state"><div class="empty-state-icon">⏳</div><h3>Loading...</h3></div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- APPLICANTS MODAL (for posted tasks) -->
+<div class="modal-overlay" id="applicantsModal">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header">
+      <h3 class="modal-title">Applications</h3>
+      <button class="modal-close">✕</button>
+    </div>
+    <div id="applicantsContent">Loading...</div>
+  </div>
+</div>
+
+<!-- REVIEW MODAL (confirm task done) -->
+<div class="modal-overlay" id="reviewModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title">Confirm Completion</h3>
+      <button class="modal-close">✕</button>
+    </div>
+    <div class="alert alert-success" style="margin-bottom:20px">
+      ✅ Confirming will release the escrowed credits to the doer immediately.
+    </div>
+    <p style="margin-bottom:20px;color:var(--text-muted)">
+      Are you satisfied with the work? Once confirmed, the payment cannot be reversed.
+    </p>
+    <div class="form-group">
+      <label class="form-label">Rate the Doer</label>
+      <div id="ratingStars" style="display:flex;gap:8px;font-size:28px;cursor:pointer">
+        <span data-val="1">⭐</span><span data-val="2">⭐</span>
+        <span data-val="3">⭐</span><span data-val="4">⭐</span><span data-val="5">⭐</span>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Comment <span style="color:var(--text-light)">(optional)</span></label>
+      <textarea id="reviewComment" class="form-textarea" rows="3" placeholder="How was the experience?"></textarea>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-ghost" id="raiseDisputeBtn">⚠ Raise Dispute</button>
+      <button class="btn btn-success" id="confirmCompleteBtn">✅ Confirm & Pay</button>
+    </div>
+  </div>
+</div>
+
+<!-- DISPUTE MODAL -->
+<div class="modal-overlay" id="disputeModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title" style="color:var(--red)">⚠ Raise a Dispute</h3>
+      <button class="modal-close">✕</button>
+    </div>
+    <div class="alert alert-warning" style="margin-bottom:20px">
+      Credits will remain locked until admin resolves the dispute.
+    </div>
+    <div class="form-group">
+      <label class="form-label">Reason for Dispute *</label>
+      <textarea id="disputeReason" class="form-textarea" placeholder="Describe the issue clearly..."></textarea>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closeModal('disputeModal')">Cancel</button>
+      <button class="btn btn-danger" id="submitDisputeBtn" onclick="doRaiseDispute()">Submit Dispute</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="../js/firebase-config.js"></script>
+<script src="../js/utils.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/tasks.js"></script>
+<script src="../js/credits.js"></script>
+<script>
+  requireAuth();
+  initTabs();
+
+  let currentReviewTaskId = null;
+  let currentReviewDoerId = null;
+  let selectedRating = 5;
+
+  window.onUserReady = async function(userData) {
+    populateSidebarUser(userData);
+    document.getElementById('topbarCredits').textContent = formatCredits(userData.creditsAvailable);
+    await Promise.all([
+      loadPosted(userData.id),
+      loadAssigned(userData.id),
+      loadEvents(userData.id),
+      loadApplications(userData.id)
+    ]);
+  };
+
+  // Rating stars
+  document.getElementById('ratingStars').querySelectorAll('span').forEach(star => {
+    star.addEventListener('click', () => {
+      selectedRating = parseInt(star.dataset.val);
+      document.getElementById('ratingStars').querySelectorAll('span').forEach((s, i) => {
+        s.style.opacity = i < selectedRating ? '1' : '0.3';
+      });
+    });
+  });
+
+  async function loadPosted(userId) {
+    try {
+      const tasks = await loadMyPostedTasks(userId);
+      if (!tasks.length) {
+        document.getElementById('postedList').innerHTML =
+          emptyStateHTML('📤', 'No tasks posted', 'Post your first task to get started.', '➕ Post Task', "window.location.href='post-task.html'");
+        return;
+      }
+      document.getElementById('postedList').innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:12px">
+          ${tasks.map(t => postedTaskRow(t)).join('')}
+        </div>`;
+    } catch(e) { console.error(e); }
+  }
+
+  function postedTaskRow(task) {
+    const days = daysLeft(task.deadline);
+    const deadlineBadge = days !== null
+      ? `<span class="badge ${days < 0 ? 'badge-red' : days <= 3 ? 'badge-yellow' : 'badge-gray'}">
+          ${days < 0 ? 'Overdue' : days === 0 ? 'Due today' : `${days}d left`}
+         </span>` : '';
+
+    const actions = {
+      open:        `<button class="btn btn-ghost btn-sm" onclick="viewApplicants('${task.id}')">👥 View Applicants</button>`,
+      in_progress: `<button class="btn btn-ghost btn-sm" onclick="viewApplicants('${task.id}')">👥 View Doer</button>`,
+      review:      `<button class="btn btn-success btn-sm" onclick="openReview('${task.id}','${task.assignedTo}')">✅ Review & Confirm</button>`,
+      completed:   `<span class="badge badge-green">✅ Completed</span>`,
+      disputed:    `<span class="badge badge-red">⚠ Disputed</span>`
+    };
+
+    return `
+      <div class="card" style="padding:16px">
+        <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+              ${statusHTML(task.status)}
+              ${deadlineBadge}
+              ${task.type === 'event' ? '<span class="badge badge-purple">🎪 Event</span>' : ''}
+            </div>
+            <h4 style="font-size:15px;font-weight:700;font-family:var(--font-head)">${task.title}</h4>
+            <div style="display:flex;gap:16px;margin-top:6px;font-size:13px;color:var(--text-muted);flex-wrap:wrap">
+              <span>💰 ${formatCredits(task.reward)}</span>
+              <span>📅 ${formatDate(task.deadline)}</span>
+              <span>${task.tags?.slice(0,3).map(t=>`<span class="tag" style="font-size:11px">${t}</span>`).join('') || ''}</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            ${actions[task.status] || ''}
+          </div>
+        </div>
+      </div>`;
+  }
+
+  async function loadAssigned(userId) {
+    try {
+      const tasks = await loadMyAssignedTasks(userId);
+      if (!tasks.length) {
+        document.getElementById('assignedList').innerHTML =
+          emptyStateHTML('📥', 'No assigned tasks', 'Browse the task board and apply for something!', 'Browse Tasks', "window.location.href='browse-tasks.html'");
+        return;
+      }
+      document.getElementById('assignedList').innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:12px">
+          ${tasks.map(t => assignedTaskRow(t)).join('')}
+        </div>`;
+    } catch(e) { console.error(e); }
+  }
+
+  function assignedTaskRow(task) {
+    const markDoneBtn = task.status === TASK_STATUS.IN_PROGRESS
+      ? `<button class="btn btn-primary btn-sm" onclick="doMarkReview('${task.id}')">📤 Submit for Review</button>`
+      : task.status === TASK_STATUS.REVIEW
+      ? `<span class="badge badge-purple">⏳ Awaiting Poster Review</span>`
+      : '';
+
+    return `
+      <div class="card" style="padding:16px">
+        <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">
+          <div style="flex:1;min-width:0">
+            <div style="margin-bottom:6px">${statusHTML(task.status)}</div>
+            <h4 style="font-size:15px;font-weight:700;font-family:var(--font-head)">${task.title}</h4>
+            <div style="font-size:13px;color:var(--text-muted);margin-top:6px">
+              💰 ${formatCredits(task.reward)} • Deadline: ${formatDate(task.deadline)}
+            </div>
+          </div>
+          <div>${markDoneBtn}</div>
+        </div>
+      </div>`;
+  }
+
+  async function loadEvents(userId) {
+    try {
+      const snap = await TASKS()
+        .where('type', '==', 'event')
+        .where('status', '==', TASK_STATUS.OPEN)
+        .get();
+
+      const events = snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter(t => t.collaborators?.some(c => c.userId === userId));
+
+      if (!events.length) {
+        document.getElementById('eventsList').innerHTML =
+          emptyStateHTML('🎪', 'No events joined', 'Browse events and apply to collaborate.', 'Browse Events', "window.location.href='browse-tasks.html?type=event'");
+        return;
+      }
+
+      document.getElementById('eventsList').innerHTML = `
+        <div class="task-grid">
+          ${events.map(t => renderTaskCard(t, currentUserData, { hideAction: true })).join('')}
+        </div>`;
+    } catch(e) { console.error(e); }
+  }
+
+  async function loadApplications(userId) {
+    try {
+      const snap = await APPLICATIONS()
+        .where('applicantId', '==', userId)
+        .orderBy('appliedAt', 'desc')
+        .get();
+
+      if (snap.empty) {
+        document.getElementById('applicationsList').innerHTML =
+          emptyStateHTML('📝', 'No applications yet', 'Apply for tasks to see them here.', 'Browse Tasks', "window.location.href='browse-tasks.html'");
+        return;
+      }
+
+      const rows = await Promise.all(snap.docs.map(async d => {
+        const app = { id: d.id, ...d.data() };
+        const taskSnap = await TASKS().doc(app.taskId).get();
+        const task = taskSnap.exists ? taskSnap.data() : null;
+        return { app, task };
+      }));
+
+      document.getElementById('applicationsList').innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:12px">
+          ${rows.map(({ app, task }) => `
+            <div class="card" style="padding:16px">
+              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+                <div style="flex:1">
+                  <h4 style="font-size:14px;font-weight:700">${task?.title || 'Task removed'}</h4>
+                  <div style="font-size:12px;color:var(--text-muted);margin-top:4px">
+                    Applied ${timeAgo(app.appliedAt)}
+                    ${app.message ? `· "${app.message.slice(0,60)}..."` : ''}
+                  </div>
+                </div>
+                ${statusHTML(app.status)}
+              </div>
+            </div>
+          `).join('')}
+        </div>`;
+    } catch(e) { console.error(e); }
+  }
+
+  // ACTIONS
+  async function viewApplicants(taskId) {
+    openModal('applicantsModal');
+    document.getElementById('applicantsContent').innerHTML = '<div style="text-align:center;padding:24px">Loading...</div>';
+
+    const snap = await APPLICATIONS().where('taskId', '==', taskId).get();
+    const apps = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    if (!apps.length) {
+      document.getElementById('applicantsContent').innerHTML =
+        '<div class="empty-state"><div class="empty-state-icon">📭</div><h3>No applications yet</h3></div>';
+      return;
+    }
+
+    const rows = await Promise.all(apps.map(async app => {
+      const userSnap = await USERS().doc(app.applicantId).get();
+      const user = userSnap.exists ? userSnap.data() : null;
+      return { app, user };
+    }));
+
+    document.getElementById('applicantsContent').innerHTML = rows.map(({ app, user }) => `
+      <div style="display:flex;align-items:center;gap:12px;padding:14px;border-bottom:1px solid var(--border-light)">
+        <div class="avatar avatar-sm" style="background:${stringToColor(user?.name||'')}">${getInitials(user?.name||'?')}</div>
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:14px">${user?.name || 'Unknown'}</div>
+          <div style="font-size:12px;color:var(--text-muted)">${app.message || 'No message'}</div>
+          <div style="font-size:11px;color:var(--text-light)">${starsHTML(user?.rating)} ${user?.completedTasks || 0} tasks done</div>
+        </div>
+        ${app.status === 'pending'
+          ? `<button class="btn btn-success btn-sm" onclick="doAccept('${app.id}','${taskId}','${app.applicantId}')">✓ Accept</button>`
+          : statusHTML(app.status)}
+      </div>`).join('');
+  }
+
+  async function doAccept(appId, taskId, applicantId) {
+    try {
+      await acceptApplication(appId, taskId, applicantId, currentUserData.id);
+      showToast('Applicant accepted!', 'success');
+      closeModal('applicantsModal');
+      await loadPosted(currentUserData.id);
+    } catch(e) { showToast(e.message, 'error'); }
+  }
+
+  async function doMarkReview(taskId) {
+    try {
+      await markTaskForReview(taskId, currentUserData.id);
+      showToast('Submitted for review!', 'success');
+      await loadAssigned(currentUserData.id);
+    } catch(e) { showToast(e.message, 'error'); }
+  }
+
+  function openReview(taskId, doerId) {
+    currentReviewTaskId = taskId;
+    currentReviewDoerId = doerId;
+    document.getElementById('reviewComment').value = '';
+    selectedRating = 5;
+    document.getElementById('ratingStars').querySelectorAll('span').forEach(s => s.style.opacity = '1');
+    openModal('reviewModal');
+  }
+
+  document.getElementById('confirmCompleteBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('confirmCompleteBtn');
+    setLoading(btn, true, 'Confirming...');
+    try {
+      await confirmTaskCompletion(currentReviewTaskId, currentUserData.id);
+      const comment = document.getElementById('reviewComment').value;
+      await rateUser(currentReviewTaskId, currentUserData.id, currentReviewDoerId, selectedRating, comment);
+      closeModal('reviewModal');
+      showToast('Task confirmed! Payment released.', 'success');
+      await loadPosted(currentUserData.id);
+    } catch(e) { showToast(e.message, 'error'); }
+    setLoading(btn, false, '✅ Confirm & Pay');
+  });
+
+  document.getElementById('raiseDisputeBtn').addEventListener('click', () => {
+    closeModal('reviewModal');
+    openModal('disputeModal');
+  });
+
+  async function doRaiseDispute() {
+    const reason = document.getElementById('disputeReason').value.trim();
+    if (!reason) { showToast('Please provide a reason.', 'warning'); return; }
+    const btn = document.getElementById('submitDisputeBtn');
+    setLoading(btn, true, 'Submitting...');
+    try {
+      const task = await TASKS().doc(currentReviewTaskId).get();
+      await raiseDispute(currentReviewTaskId, currentUserData.id, task.data().assignedTo, reason);
+      closeModal('disputeModal');
+      showToast('Dispute raised. Admin will resolve.', 'info');
+      await loadPosted(currentUserData.id);
+    } catch(e) { showToast(e.message, 'error'); }
+    setLoading(btn, false, 'Submit Dispute');
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Post a Task — CampusFreelance</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/user.css">
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-mark">🎓</div>
+      <div class="sidebar-logo-text">Campus<span>Freelance</span></div>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-user-card">
+        <div class="avatar" id="sidebarAvatar">?</div>
+        <div class="sidebar-user-info">
+          <h4 id="sidebarName">Loading...</h4>
+          <p id="sidebarRole">—</p>
+        </div>
+      </div>
+      <div class="sidebar-credits">💰 <span id="sidebarCredits">—</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Main</span>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">🏠</span><span class="nav-label">Dashboard</span></a>
+      <a href="browse-tasks.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-label">Browse Tasks</span></a>
+      <a href="post-task.html" class="nav-item active"><span class="nav-icon">➕</span><span class="nav-label">Post a Task</span></a>
+      <a href="my-tasks.html" class="nav-item"><span class="nav-icon">📁</span><span class="nav-label">My Tasks</span></a>
+      <span class="nav-section-label">Account</span>
+      <a href="profile.html" class="nav-item"><span class="nav-icon">👤</span><span class="nav-label">Profile</span></a>
+      <a href="notifications.html" class="nav-item"><span class="nav-icon">🔔</span><span class="nav-label">Notifications</span></a>
+      <a href="wallet.html" class="nav-item"><span class="nav-icon">💰</span><span class="nav-label">Wallet</span></a>
+    </nav>
+    <div class="sidebar-bottom">
+      <button class="nav-item logout" onclick="signOut()" style="width:100%;text-align:left">
+        <span class="nav-icon">🚪</span><span class="nav-label">Sign Out</span>
+      </button>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <main class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('show')">☰</button>
+        <div class="page-title">Post a Task</div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-notif" onclick="window.location.href='notifications.html'">🔔</div>
+        <div class="credit-chip">💰 <span id="topbarCredits">—</span></div>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <div class="post-form-wrap">
+
+        <!-- PRIVILEGE GATE — shown for students/external without canPost -->
+        <div id="privilegeGate" style="display:none">
+          <div class="privilege-gate card">
+            <div style="font-size:56px;margin-bottom:12px">🔒</div>
+            <h2>Posting Privilege Required</h2>
+            <p>As a <strong id="gateRoleLabel">Student</strong>, you need permission to post tasks. Choose how to proceed:</p>
+            <div class="privilege-options">
+              <div class="privilege-option" onclick="showRequestForm()">
+                <div style="font-size:32px;margin-bottom:8px">📝</div>
+                <h4>Submit Request</h4>
+                <p>Post a single task for admin review</p>
+                <div style="margin-top:10px" class="badge badge-orange">Costs 5 CP</div>
+              </div>
+              <div class="privilege-option" onclick="showPrivilegeRequest()">
+                <div style="font-size:32px;margin-bottom:8px">🔓</div>
+                <h4>Request Privilege</h4>
+                <p>Post freely after one-time admin approval</p>
+                <div style="margin-top:10px" class="badge badge-blue">Costs 20 CP</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SINGLE REQUEST FORM -->
+        <div id="requestForm" style="display:none">
+          <div class="page-header">
+            <div>
+              <h1>Submit Task Request</h1>
+              <p style="color:var(--text-muted);font-size:14px">Costs 5 CP • Admin will review within 24–48 hours</p>
+            </div>
+            <button class="btn btn-ghost" onclick="showPrivilegeGate()">← Back</button>
+          </div>
+          <div class="alert alert-warning" style="margin-bottom:20px">
+            ⚠ A non-refundable 5 CP fee will be charged to submit this request.
+          </div>
+          <div id="requestTaskForm"></div>
+        </div>
+
+        <!-- PRIVILEGE REQUEST -->
+        <div id="privilegeRequestForm" style="display:none">
+          <div class="page-header">
+            <div>
+              <h1>Request Post Privilege</h1>
+              <p style="color:var(--text-muted);font-size:14px">One-time 20 CP fee • Post freely once approved</p>
+            </div>
+            <button class="btn btn-ghost" onclick="showPrivilegeGate()">← Back</button>
+          </div>
+          <div class="card">
+            <div style="text-align:center;padding:32px">
+              <div style="font-size:56px;margin-bottom:16px">🔓</div>
+              <h2 style="margin-bottom:10px">Request Posting Privilege</h2>
+              <p style="color:var(--text-muted);margin-bottom:24px;max-width:420px;margin-inline:auto">
+                Once approved, you can post tasks anytime without going through the request queue. This costs a one-time 20 CP fee.
+              </p>
+              <div class="alert alert-info" style="text-align:left;margin-bottom:24px">
+                💰 Your current balance: <strong id="balanceForPrivilege">—</strong>
+              </div>
+              <div class="form-group" style="text-align:left">
+                <label class="form-label">Why do you need posting privilege?</label>
+                <textarea id="privilegeReason" class="form-textarea" placeholder="Explain how you plan to use the platform..."></textarea>
+              </div>
+              <button class="btn btn-primary btn-lg" id="requestPrivilegeBtn" onclick="submitPrivilegeRequest()">
+                Request Privilege (20 CP)
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- FULL POST FORM — shown for auto-post roles or users with canPost -->
+        <div id="postForm" style="display:none">
+          <div class="page-header">
+            <div>
+              <h1>Post a Task</h1>
+              <p style="color:var(--text-muted);font-size:14px">The reward will be locked in escrow until completion</p>
+            </div>
+          </div>
+          <div id="fullTaskForm"></div>
+        </div>
+
+        <!-- SUCCESS STATE -->
+        <div id="successState" style="display:none">
+          <div class="card" style="text-align:center;padding:60px 40px">
+            <div style="font-size:64px;margin-bottom:16px">🎉</div>
+            <h2 style="margin-bottom:10px" id="successTitle">Task Posted!</h2>
+            <p style="color:var(--text-muted);margin-bottom:28px" id="successDesc">Your task is now live and accepting applications.</p>
+            <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+              <a href="my-tasks.html" class="btn btn-primary">View My Tasks</a>
+              <button class="btn btn-ghost" onclick="resetForm()">Post Another</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+<div class="toast-container"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="../js/firebase-config.js"></script>
+<script src="../js/utils.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/tasks.js"></script>
+<script src="../js/credits.js"></script>
+<script>
+  requireAuth();
+
+  let taskTags = [];
+
+  const TASK_FORM_HTML = (submitBtnText, submitFn) => `
+    <div class="card">
+      <div class="form-group">
+        <label class="form-label">Task Title *</label>
+        <input type="text" id="taskTitle" class="form-input" placeholder="e.g. Design a logo for the CS department" maxlength="80">
+        <span class="form-error" id="titleErr"></span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description *</label>
+        <textarea id="taskDesc" class="form-textarea" rows="5"
+          placeholder="Describe what needs to be done, deliverables, any specific requirements..."></textarea>
+        <span class="form-hint">Be specific — better descriptions attract better applicants</span>
+      </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Reward (CP) *</label>
+          <div class="input-group">
+            <span class="input-icon">💰</span>
+            <input type="number" id="taskReward" class="form-input" placeholder="e.g. 50" min="10" max="10000">
+          </div>
+          <span class="form-hint" id="rewardHint">Min 10 CP</span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Deadline *</label>
+          <input type="date" id="taskDeadline" class="form-input">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Target Role</label>
+        <select id="taskTargetRole" class="form-select">
+          <option value="">Open to all</option>
+          <option value="student">Students only</option>
+          <option value="teaching_staff">Teaching Staff</option>
+          <option value="nonteaching_staff">Non-Teaching Staff</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tags</label>
+        <div class="tag-input-wrap" id="tagInputWrap">
+          <input type="text" id="tagInput" placeholder="Type a tag and press Enter...">
+        </div>
+        <span class="form-hint">Up to 10 tags. Press Enter or comma to add.</span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Estimated Duration</label>
+        <select id="taskDuration" class="form-select">
+          <option value="">Select duration</option>
+          <option value="few_hours">A few hours</option>
+          <option value="1_day">1 day</option>
+          <option value="2_3_days">2–3 days</option>
+          <option value="1_week">1 week</option>
+          <option value="2_weeks">2 weeks</option>
+          <option value="1_month">1 month+</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:8px">
+        <button type="button" class="btn btn-primary btn-lg" id="taskSubmitBtn" onclick="${submitFn}()">
+          ${submitBtnText}
+        </button>
+        <button type="button" class="btn btn-ghost btn-lg" onclick="resetForm()">Cancel</button>
+      </div>
+    </div>`;
+
+  window.onUserReady = function(userData) {
+    populateSidebarUser(userData);
+    document.getElementById('topbarCredits').textContent = formatCredits(userData.creditsAvailable);
+    document.getElementById('balanceForPrivilege').textContent = formatCredits(userData.creditsAvailable);
+
+    const canPostFree = AUTO_POST_ROLES.includes(userData.role) || userData.canPost;
+    if (canPostFree) {
+      showPostForm();
+    } else {
+      document.getElementById('gateRoleLabel').textContent = ROLE_INFO[userData.role]?.label || userData.role;
+      showPrivilegeGate();
+    }
+  };
+
+  function showPrivilegeGate() {
+    hide(['requestForm','privilegeRequestForm','postForm','successState']);
+    show('privilegeGate');
+  }
+
+  function showRequestForm() {
+    hide(['privilegeGate','privilegeRequestForm','postForm','successState']);
+    document.getElementById('requestTaskForm').innerHTML = TASK_FORM_HTML('Submit Request (5 CP)', 'doSubmitRequest');
+    initTagInput('tagInputWrap', 'tagInput', taskTags);
+    setMinDeadline();
+    show('requestForm');
+  }
+
+  function showPrivilegeRequest() {
+    hide(['privilegeGate','requestForm','postForm','successState']);
+    show('privilegeRequestForm');
+  }
+
+  function showPostForm() {
+    hide(['privilegeGate','requestForm','privilegeRequestForm','successState']);
+    document.getElementById('fullTaskForm').innerHTML = TASK_FORM_HTML('🚀 Post Task', 'doPostTask');
+    initTagInput('tagInputWrap', 'tagInput', taskTags);
+    setMinDeadline();
+    show('postForm');
+  }
+
+  function setMinDeadline() {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const el = document.getElementById('taskDeadline');
+    if (el) el.min = tomorrow.toISOString().split('T')[0];
+  }
+
+  function getFormData() {
+    const title    = document.getElementById('taskTitle')?.value.trim();
+    const desc     = document.getElementById('taskDesc')?.value.trim();
+    const reward   = parseInt(document.getElementById('taskReward')?.value);
+    const deadline = document.getElementById('taskDeadline')?.value;
+    const role     = document.getElementById('taskTargetRole')?.value;
+    const duration = document.getElementById('taskDuration')?.value;
+    return { title, description: desc, reward, deadline: deadline ? new Date(deadline) : null,
+      targetRole: role, duration, tags: [...taskTags] };
+  }
+
+  function validateForm() {
+    const d = getFormData();
+    if (!d.title)           { showToast('Please enter a task title.', 'warning'); return null; }
+    if (!d.description)     { showToast('Please enter a description.', 'warning'); return null; }
+    if (!d.reward || d.reward < 10) { showToast('Reward must be at least 10 CP.', 'warning'); return null; }
+    if (d.reward > (currentUserData?.creditsAvailable || 0)) {
+      showToast(`Insufficient credits. You have ${currentUserData?.creditsAvailable} CP.`, 'error'); return null;
+    }
+    if (!d.deadline)        { showToast('Please set a deadline.', 'warning'); return null; }
+    return d;
+  }
+
+  window.doPostTask = async function() {
+    const data = validateForm();
+    if (!data) return;
+    const btn = document.getElementById('taskSubmitBtn');
+    setLoading(btn, true, 'Posting...');
+    try {
+      await createTask(data, currentUserData.id);
+      showSuccess('Task Posted!', 'Your task is now live and open for applications.');
+    } catch(e) {
+      showToast(e.message, 'error');
+      setLoading(btn, false, '🚀 Post Task');
+    }
+  };
+
+  window.doSubmitRequest = async function() {
+    const data = validateForm();
+    if (!data) return;
+    const btn = document.getElementById('taskSubmitBtn');
+    setLoading(btn, true, 'Submitting...');
+    try {
+      await submitPostRequest(data, currentUserData.id);
+      showSuccess('Request Submitted!', 'Admin will review your task request. You\'ll be notified of the decision.');
+    } catch(e) {
+      showToast(e.message, 'error');
+      setLoading(btn, false, 'Submit Request (5 CP)');
+    }
+  };
+
+  window.submitPrivilegeRequest = async function() {
+    const reason = document.getElementById('privilegeReason').value.trim();
+    if (!reason) { showToast('Please explain why you need posting privilege.', 'warning'); return; }
+    if ((currentUserData?.creditsAvailable || 0) < 20) {
+      showToast('You need 20 CP to request posting privilege.', 'error'); return;
+    }
+    const btn = document.getElementById('requestPrivilegeBtn');
+    setLoading(btn, true, 'Submitting...');
+    try {
+      await spendCredits(currentUserData.id, 20, 'Post privilege request fee');
+      await NOTIFICATIONS().add({
+        userId: 'admin', // In practice, notify all admins
+        message: `${currentUserData.name} requested posting privilege. Reason: ${reason}`,
+        type: 'privilege_request',
+        fromUser: currentUserData.id,
+        isRead: false,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      showSuccess('Privilege Request Sent!', 'Admin will review your request. Once approved, you can post freely.');
+    } catch(e) {
+      showToast(e.message, 'error');
+      setLoading(btn, false, 'Request Privilege (20 CP)');
+    }
+  };
+
+  function showSuccess(title, desc) {
+    document.getElementById('successTitle').textContent = title;
+    document.getElementById('successDesc').textContent = desc;
+    hide(['privilegeGate','requestForm','privilegeRequestForm','postForm','privilegeRequestForm']);
+    show('successState');
+  }
+
+  function resetForm() {
+    taskTags = [];
+    window.onUserReady(currentUserData);
+  }
+
+  function show(id) { document.getElementById(id).style.display = ''; }
+  function hide(ids) { ids.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; }); }
+</script>
+</body>
+</html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notifications — CampusFreelance</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/user.css">
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-mark">🎓</div>
+      <div class="sidebar-logo-text">Campus<span>Freelance</span></div>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-user-card">
+        <div class="avatar" id="sidebarAvatar">?</div>
+        <div class="sidebar-user-info">
+          <h4 id="sidebarName">Loading...</h4>
+          <p id="sidebarRole">—</p>
+        </div>
+      </div>
+      <div class="sidebar-credits">💰 <span id="sidebarCredits">—</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Main</span>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">🏠</span><span class="nav-label">Dashboard</span></a>
+      <a href="browse-tasks.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-label">Browse Tasks</span></a>
+      <a href="post-task.html" class="nav-item"><span class="nav-icon">➕</span><span class="nav-label">Post a Task</span></a>
+      <a href="my-tasks.html" class="nav-item"><span class="nav-icon">📁</span><span class="nav-label">My Tasks</span></a>
+      <span class="nav-section-label">Account</span>
+      <a href="profile.html" class="nav-item"><span class="nav-icon">👤</span><span class="nav-label">Profile</span></a>
+      <a href="notifications.html" class="nav-item active"><span class="nav-icon">🔔</span><span class="nav-label">Notifications</span></a>
+      <a href="wallet.html" class="nav-item"><span class="nav-icon">💰</span><span class="nav-label">Wallet</span></a>
+    </nav>
+    <div class="sidebar-bottom">
+      <button class="nav-item logout" onclick="signOut()" style="width:100%;text-align:left">
+        <span class="nav-icon">🚪</span><span class="nav-label">Sign Out</span>
+      </button>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <main class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('show')">☰</button>
+        <div class="page-title">Notifications</div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-ghost btn-sm" id="markAllBtn" onclick="markAllRead()">✓ Mark all read</button>
+        <div class="credit-chip">💰 <span id="topbarCredits">—</span></div>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <div style="max-width:640px">
+
+        <!-- FILTER TABS -->
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="tab-all">All</button>
+          <button class="tab-btn" data-tab="tab-unread">Unread <span id="unreadCount" class="nav-badge" style="margin-left:4px;position:relative;display:inline-flex">0</span></button>
+          <button class="tab-btn" data-tab="tab-tasks">Tasks</button>
+          <button class="tab-btn" data-tab="tab-credits">Credits</button>
+        </div>
+
+        <div class="tab-content active" id="tab-all">
+          <div id="notifAll"></div>
+        </div>
+        <div class="tab-content" id="tab-unread">
+          <div id="notifUnread"></div>
+        </div>
+        <div class="tab-content" id="tab-tasks">
+          <div id="notifTasks"></div>
+        </div>
+        <div class="tab-content" id="tab-credits">
+          <div id="notifCredits"></div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+<div class="toast-container"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="../js/firebase-config.js"></script>
+<script src="../js/utils.js"></script>
+<script src="../js/auth.js"></script>
+<script>
+  requireAuth();
+  initTabs();
+
+  let allNotifs = [];
+
+  const NOTIF_ICONS = {
+    success:       '✅',
+    error:         '❌',
+    warning:       '⚠️',
+    info:          'ℹ️',
+    application:   '📝',
+    review:        '🔍',
+    credit:        '💰',
+    bonus:         '🎉',
+    event:         '🎪',
+    invite:        '✉️',
+    privilege_request: '🔓',
+    topup_request: '💸'
+  };
+
+  const TASK_TYPES = ['application', 'review', 'success', 'event', 'invite'];
+  const CREDIT_TYPES = ['credit', 'bonus', 'topup_request', 'escrow'];
+
+  window.onUserReady = async function(userData) {
+    populateSidebarUser(userData);
+    document.getElementById('topbarCredits').textContent = formatCredits(userData.creditsAvailable);
+    await loadNotifications(userData.id);
+  };
+
+  async function loadNotifications(userId) {
+    const snap = await NOTIFICATIONS()
+      .where('userId', '==', userId)
+      .orderBy('createdAt', 'desc')
+      .limit(60)
+      .get();
+
+    allNotifs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const unread = allNotifs.filter(n => !n.isRead);
+    document.getElementById('unreadCount').textContent = unread.length;
+
+    renderTab('notifAll',     allNotifs);
+    renderTab('notifUnread',  unread);
+    renderTab('notifTasks',   allNotifs.filter(n => TASK_TYPES.includes(n.type)));
+    renderTab('notifCredits', allNotifs.filter(n => CREDIT_TYPES.includes(n.type)));
+  }
+
+  function renderTab(containerId, notifs) {
+    const container = document.getElementById(containerId);
+    if (!notifs.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">🔔</div>
+          <h3>All caught up!</h3>
+          <p>No notifications here yet.</p>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = notifs.map(n => `
+      <div class="notif-item ${n.isRead ? '' : 'unread'}" id="notif-${n.id}" onclick="markRead('${n.id}', this)">
+        <div class="notif-icon" style="background:${n.isRead ? 'var(--bg-2)' : 'var(--accent-soft)'}">
+          ${NOTIF_ICONS[n.type] || '🔔'}
+        </div>
+        <div class="notif-text" style="flex:1">
+          <p style="font-size:14px;font-weight:${n.isRead ? '400' : '600'}">${n.message}</p>
+          <span>${timeAgo(n.createdAt)}</span>
+        </div>
+        ${!n.isRead ? '<div style="width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:5px"></div>' : ''}
+      </div>
+    `).join('');
+  }
+
+  async function markRead(notifId, el) {
+    if (el.querySelector('.unread') || !el.classList.contains('unread')) {
+      // not unread — skip
+    }
+    try {
+      await NOTIFICATIONS().doc(notifId).update({ isRead: true });
+      el.classList.remove('unread');
+      const dot = el.querySelector('div[style*="border-radius:50%"]');
+      if (dot) dot.remove();
+      // Update count
+      const n = allNotifs.find(x => x.id === notifId);
+      if (n) n.isRead = true;
+      const unread = allNotifs.filter(x => !x.isRead).length;
+      document.getElementById('unreadCount').textContent = unread;
+    } catch(e) { console.error(e); }
+  }
+
+  async function markAllRead() {
+    const btn = document.getElementById('markAllBtn');
+    setLoading(btn, true, 'Marking...');
+    const batch = db.batch();
+    allNotifs.filter(n => !n.isRead).forEach(n => {
+      batch.update(NOTIFICATIONS().doc(n.id), { isRead: true });
+    });
+    await batch.commit();
+    allNotifs.forEach(n => n.isRead = true);
+    document.getElementById('unreadCount').textContent = '0';
+    document.querySelectorAll('.notif-item.unread').forEach(el => {
+      el.classList.remove('unread');
+    });
+    setLoading(btn, false, '✓ Mark all read');
+    showToast('All notifications marked as read.', 'success');
+  }
+</script>
+</body>
+</html>
