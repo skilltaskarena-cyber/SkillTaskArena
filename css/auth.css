@@ -1,0 +1,278 @@
+/* ═══════════════════════════════════════════
+   AUTH PAGES — Campus Registration Booth
+═══════════════════════════════════════════ */
+
+.auth-page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+/* LEFT PANEL — vibrant violet gradient like a campus banner */
+.auth-panel {
+  background: linear-gradient(150deg, #2d1b69 0%, #3d2b85 40%, #5a45b0 100%);
+  padding: 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Blob decorations */
+.auth-panel::before {
+  content: '';
+  position: absolute;
+  top: -80px; right: -80px;
+  width: 360px; height: 360px;
+  border-radius: 50%;
+  background: rgba(255,92,87,0.15);
+  pointer-events: none;
+}
+
+.auth-panel::after {
+  content: '';
+  position: absolute;
+  bottom: -100px; left: -60px;
+  width: 280px; height: 280px;
+  border-radius: 50%;
+  background: rgba(0,180,160,0.12);
+  pointer-events: none;
+}
+
+/* Dots pattern */
+.auth-panel-dots {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.07) 1.5px, transparent 1.5px);
+  background-size: 24px 24px;
+  pointer-events: none;
+}
+
+.auth-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 56px;
+  position: relative;
+  z-index: 1;
+}
+
+.auth-logo-mark {
+  width: 46px; height: 46px;
+  background: var(--accent);
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px;
+  box-shadow: 0 4px 16px rgba(255,92,87,0.4);
+}
+
+.auth-logo-text {
+  font-family: var(--font-head);
+  font-size: 22px;
+  font-weight: 900;
+  color: #fff;
+}
+
+.auth-logo-text span { color: #ffd88a; }
+
+.auth-panel-content { position: relative; z-index: 1; }
+
+.auth-panel h1 {
+  font-size: 40px;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1.1;
+  margin-bottom: 18px;
+}
+
+.auth-panel h1 span {
+  color: #ffd88a;
+  display: inline-block;
+  position: relative;
+}
+
+.auth-panel p {
+  color: rgba(255,255,255,0.65);
+  font-size: 16px;
+  line-height: 1.7;
+  margin-bottom: 40px;
+  font-weight: 500;
+}
+
+.auth-features { display: flex; flex-direction: column; gap: 16px; }
+
+.auth-feature {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: rgba(255,255,255,0.85);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.auth-feature-icon {
+  width: 38px; height: 38px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.12);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+/* RIGHT PANEL — warm paper feel */
+.auth-form-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 60px;
+  background: var(--bg);
+  overflow-y: auto;
+}
+
+.auth-form-wrap {
+  max-width: 420px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.auth-form-title {
+  font-size: 30px;
+  font-weight: 900;
+  margin-bottom: 6px;
+  color: var(--text);
+}
+
+.auth-form-subtitle {
+  color: var(--text-muted);
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 28px;
+}
+
+.auth-form-subtitle a { color: var(--accent); font-weight: 800; }
+.auth-form-subtitle a:hover { text-decoration: underline; }
+
+/* ROLE SELECTOR — college program cards */
+.role-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.role-option { position: relative; }
+
+.role-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+}
+
+.role-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 10px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition);
+  text-align: center;
+  background: var(--card);
+}
+
+.role-label:hover {
+  border-color: var(--primary-mid);
+  background: var(--purple-soft);
+}
+
+.role-option input:checked + .role-label {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: 0 0 0 4px rgba(255,92,87,0.12);
+}
+
+.role-icon { font-size: 24px; }
+
+.role-name {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text);
+  font-family: var(--font-head);
+}
+
+/* PASSWORD STRENGTH */
+.password-strength { margin-top: 6px; }
+
+.strength-bar {
+  height: 5px;
+  background: var(--bg-2);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.strength-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: all .3s;
+  width: 0%;
+}
+
+.strength-fill.weak   { width: 33%; background: var(--red);   }
+.strength-fill.medium { width: 66%; background: var(--yellow); }
+.strength-fill.strong { width: 100%; background: var(--green); }
+
+.strength-text { font-size: 11px; font-weight: 700; color: var(--text-muted); }
+
+/* TERMS */
+.terms-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.terms-check input { margin-top: 2px; accent-color: var(--accent); }
+.terms-check a { color: var(--accent); }
+
+/* PENDING NOTICE */
+.pending-notice { text-align: center; padding: 40px 20px; }
+
+.pending-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  animation: bounce 1.5s ease infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-10px); }
+}
+
+/* STARTER CREDIT BADGE */
+.starter-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: var(--yellow-soft);
+  border: 1.5px solid rgba(245,184,0,.3);
+  border-radius: var(--radius-md);
+  margin-bottom: 16px;
+}
+
+.starter-badge-icon { font-size: 24px; }
+.starter-badge-text { font-size: 13px; font-weight: 700; color: #92400e; }
+.starter-badge-text strong { font-weight: 900; }
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .auth-page { grid-template-columns: 1fr; }
+  .auth-panel { display: none; }
+  .auth-form-panel { padding: 40px 24px; }
+}
