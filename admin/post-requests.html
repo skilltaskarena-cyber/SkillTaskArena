@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Post Requests — CampusFreelance Admin</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/user.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+<div class="app-layout admin-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-mark">🛡️</div>
+      <div class="sidebar-logo-text">Campus<span>Admin</span></div>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-user-card">
+        <div class="avatar" id="sidebarAvatar">?</div>
+        <div class="sidebar-user-info">
+          <h4 id="sidebarName">Loading...</h4>
+          <p id="sidebarRole">—</p>
+        </div>
+      </div>
+      <div style="margin-top:8px"><span class="admin-badge-chip">🛡 Admin Panel</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Overview</span>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a>
+      <span class="nav-section-label">Manage</span>
+      <a href="users.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-label">Users</span></a>
+      <a href="tasks.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-label">Tasks</span></a>
+      <a href="post-requests.html" class="nav-item active"><span class="nav-icon">📝</span><span class="nav-label">Post Requests</span></a>
+      <a href="audit-log.html" class="nav-item"><span class="nav-icon">📜</span><span class="nav-label">Audit Log</span></a>
+    </nav>
+    <div class="sidebar-bottom">
+      <button class="nav-item logout" onclick="signOut()" style="width:100%;text-align:left">
+        <span class="nav-icon">🚪</span><span class="nav-label">Sign Out</span>
+      </button>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <main class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('show')">☰</button>
+        <div class="page-title">Task Post Requests</div>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <!-- TABS -->
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="tab-pending">
+          ⏳ Pending <span id="pendingCount" class="nav-badge" style="margin-left:6px;position:relative;display:inline-flex">0</span>
+        </button>
+        <button class="tab-btn" data-tab="tab-approved">✅ Approved</button>
+        <button class="tab-btn" data-tab="tab-rejected">❌ Rejected</button>
+      </div>
+
+      <div class="tab-content active" id="tab-pending">
+        <div id="pendingList">
+          <div style="text-align:center;padding:32px;color:var(--text-muted)">Loading...</div>
+        </div>
+      </div>
+      <div class="tab-content" id="tab-approved">
+        <div id="approvedList">
+          <div style="text-align:center;padding:32px;color:var(--text-muted)">Loading...</div>
+        </div>
+      </div>
+      <div class="tab-content" id="tab-rejected">
+        <div id="rejectedList">
+          <div style="text-align:center;padding:32px;color:var(--text-muted)">Loading...</div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<div class="toast-container"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="../js/firebase-config.js"></script>
+<script src="../js/utils.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/tasks.js"></script>
+<script src="../js/credits.js"></script>
+<script src="../js/admin.js"></script>
+<script>
+  requireAdmin();
+  initTabs();
+
+  window.onUserReady = async function(userData) {
+    populateSidebarUser(userData);
+    await loadAllRequests();
+  };
+
+  async function loadAllRequests() {
+    const snap = await POST_REQUESTS().orderBy('createdAt', 'desc').get();
+    const all  = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    const pending  = all.filter(r => r.status === 'pending');
+    const approved = all.filter(r => r.status === 'approved');
+    const rejected = all.filter(r => r.status === 'rejected');
+
+    document.getElementById('pendingCount').textContent = pending.length;
+
+    await renderRequests('pendingList',  pending,  true);
+    await renderRequests('approvedList', approved, false);
+    await renderRequests('rejectedList', rejected, false);
+  }
+
+  async function renderRequests(containerId, requests, showActions) {
+    const el = document.getElementById(containerId);
+    if (!requests.length) {
+      el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📭</div><h3>No requests here</h3></div>`;
+      return;
+    }
+
+    const cards = await Promise.all(requests.map(async r => {
+      const userSnap = await USERS().doc(r.requestedBy).get();
+      const user = userSnap.exists ? userSnap.data() : null;
+      const draft = r.taskDraft || {};
+
+      return `
+        <div class="request-card">
+          <div class="request-card-header">
+            <div class="user-row">
+              <div class="avatar avatar-sm" style="background:${stringToColor(user?.name||'')}">${getInitials(user?.name||'?')}</div>
+              <div class="user-row-info">
+                <h4>${user?.name || 'Unknown'}</h4>
+                <p>${roleHTML(user?.role || 'student')} · ${timeAgo(r.createdAt)}</p>
+              </div>
+            </div>
+            ${statusHTML(r.status)}
+          </div>
+
+          <div class="request-card-body">
+            <h3 style="font-size:16px;font-weight:700;margin-bottom:8px">${draft.title || 'Untitled Task'}</h3>
+            <p style="font-size:14px;color:var(--text-muted);margin-bottom:12px;line-height:1.5">
+              ${(draft.description || '—').slice(0, 200)}...
+            </p>
+            <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--text-muted)">
+              <span>💰 Reward: <strong>${draft.reward || 0} CP</strong></span>
+              <span>📅 Deadline: <strong>${draft.deadline ? formatDate({toDate:()=>new Date(draft.deadline?.seconds*1000||draft.deadline)}) : '—'}</strong></span>
+              <span>🎯 For: <strong>${draft.targetRole ? ROLE_INFO[draft.targetRole]?.label : 'All'}</strong></span>
+            </div>
+            ${(draft.tags||[]).length ? `
+              <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px">
+                ${draft.tags.map(t=>`<span class="tag">${t}</span>`).join('')}
+              </div>` : ''}
+
+            ${r.rejectionReason ? `
+              <div class="alert alert-error" style="margin-top:12px">
+                <strong>Rejection Reason:</strong> ${r.rejectionReason}
+              </div>` : ''}
+          </div>
+
+          ${showActions ? `
+            <div class="request-card-footer">
+              <button class="btn btn-ghost btn-sm" onclick="toggleReject('${r.id}')">❌ Reject</button>
+              <button class="btn btn-success btn-sm" onclick="doApprove('${r.id}')">✅ Approve & Publish</button>
+            </div>
+            <div class="rejection-area" id="reject-${r.id}">
+              <div style="padding:16px;background:var(--red-soft);border-top:1px solid #fecaca">
+                <div class="form-group" style="margin-bottom:10px">
+                  <label class="form-label" style="color:var(--red)">Rejection Reason</label>
+                  <textarea id="rejectReason-${r.id}" class="form-textarea" rows="2"
+                    placeholder="Explain why this task request is being rejected..."></textarea>
+                </div>
+                <div style="display:flex;gap:8px;justify-content:flex-end">
+                  <button class="btn btn-ghost btn-sm" onclick="toggleReject('${r.id}')">Cancel</button>
+                  <button class="btn btn-danger btn-sm" onclick="doReject('${r.id}')">Confirm Rejection</button>
+                </div>
+              </div>
+            </div>` : ''}
+        </div>`;
+    }));
+
+    el.innerHTML = `<div style="display:flex;flex-direction:column;gap:16px">${cards.join('')}</div>`;
+  }
+
+  function toggleReject(reqId) {
+    const area = document.getElementById(`reject-${reqId}`);
+    area.classList.toggle('show');
+  }
+
+  async function doApprove(reqId) {
+    try {
+      await approvePostRequest(currentUserData.id, reqId);
+      showToast('Request approved — task is now live!', 'success');
+      await loadAllRequests();
+    } catch(e) { showToast(e.message, 'error'); }
+  }
+
+  async function doReject(reqId) {
+    const reason = document.getElementById(`rejectReason-${reqId}`)?.value.trim();
+    if (!reason) { showToast('Please provide a rejection reason.', 'warning'); return; }
+    try {
+      await rejectPostRequest(currentUserData.id, reqId, reason);
+      showToast('Request rejected.', 'info');
+      await loadAllRequests();
+    } catch(e) { showToast(e.message, 'error'); }
+  }
+</script>
+</body>
+</html>

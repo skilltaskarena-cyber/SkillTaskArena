@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard — CampusFreelance</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/user.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+<div class="app-layout admin-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-mark">🛡️</div>
+      <div class="sidebar-logo-text">Campus<span>Admin</span></div>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-user-card">
+        <div class="avatar" id="sidebarAvatar">?</div>
+        <div class="sidebar-user-info">
+          <h4 id="sidebarName">Loading...</h4>
+          <p id="sidebarRole">—</p>
+        </div>
+      </div>
+      <div style="margin-top:8px"><span class="admin-badge-chip">🛡 Admin Panel</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Overview</span>
+      <a href="dashboard.html" class="nav-item active"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a>
+      <span class="nav-section-label">Manage</span>
+      <a href="users.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-label">Users</span></a>
+      <a href="tasks.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-label">Tasks</span></a>
+      <a href="post-requests.html" class="nav-item" id="navPostReqs">
+        <span class="nav-icon">📝</span><span class="nav-label">Post Requests</span>
+        <span class="nav-badge" id="reqsBadge" style="display:none">0</span>
+      </a>
+      <a href="audit-log.html" class="nav-item"><span class="nav-icon">📜</span><span class="nav-label">Audit Log</span></a>
+      <span class="nav-section-label">View</span>
+      <a href="../user/browse-tasks.html" class="nav-item"><span class="nav-icon">🔍</span><span class="nav-label">Browse as User</span></a>
+    </nav>
+    <div class="sidebar-bottom">
+      <button class="nav-item logout" onclick="signOut()" style="width:100%;text-align:left">
+        <span class="nav-icon">🚪</span><span class="nav-label">Sign Out</span>
+      </button>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <main class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('show')">☰</button>
+        <div class="page-title">Admin Dashboard</div>
+      </div>
+      <div class="topbar-right">
+        <span id="adminTime" style="font-size:13px;color:var(--text-muted)"></span>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <!-- ADMIN STATS -->
+      <div class="admin-stats" id="adminStats">
+        <div class="admin-stat-card users">
+          <div class="admin-stat-top">
+            <div class="admin-stat-icon">👥</div>
+            <span class="badge badge-blue">Users</span>
+          </div>
+          <div class="admin-stat-value" id="statUsers">—</div>
+          <div class="admin-stat-label">Total Users</div>
+          <div class="admin-stat-trend" id="statPendingUsers"></div>
+        </div>
+        <div class="admin-stat-card tasks">
+          <div class="admin-stat-top">
+            <div class="admin-stat-icon">📋</div>
+            <span class="badge badge-green">Tasks</span>
+          </div>
+          <div class="admin-stat-value" id="statTasks">—</div>
+          <div class="admin-stat-label">Total Tasks</div>
+          <div class="admin-stat-trend" id="statActiveTasks"></div>
+        </div>
+        <div class="admin-stat-card pending">
+          <div class="admin-stat-top">
+            <div class="admin-stat-icon">⏳</div>
+            <span class="badge badge-yellow">Pending</span>
+          </div>
+          <div class="admin-stat-value" id="statPending">—</div>
+          <div class="admin-stat-label">Pending Approvals</div>
+          <div class="admin-stat-trend" id="statPendingReqs"></div>
+        </div>
+        <div class="admin-stat-card credits">
+          <div class="admin-stat-top">
+            <div class="admin-stat-icon">⚠️</div>
+            <span class="badge badge-orange">Disputes</span>
+          </div>
+          <div class="admin-stat-value" id="statDisputes">—</div>
+          <div class="admin-stat-label">Open Disputes</div>
+          <div class="admin-stat-trend" id="statDisputeNote"></div>
+        </div>
+      </div>
+
+      <!-- PENDING QUEUES -->
+      <div class="grid-2" style="margin-bottom:24px">
+
+        <!-- PENDING USERS -->
+        <div class="card">
+          <div class="queue-header">
+            <span class="card-title">⏳ Pending User Approvals</span>
+            <span class="queue-count" id="pendingUserCount">0</span>
+          </div>
+          <div id="pendingUserList">
+            <div style="text-align:center;padding:20px;color:var(--text-muted)">Loading...</div>
+          </div>
+          <div style="margin-top:12px">
+            <a href="users.html?filter=pending" class="btn btn-ghost btn-sm btn-block">View All Users →</a>
+          </div>
+        </div>
+
+        <!-- PENDING POST REQUESTS -->
+        <div class="card">
+          <div class="queue-header">
+            <span class="card-title">📝 Task Post Requests</span>
+            <span class="queue-count" id="pendingReqCount">0</span>
+          </div>
+          <div id="pendingReqList">
+            <div style="text-align:center;padding:20px;color:var(--text-muted)">Loading...</div>
+          </div>
+          <div style="margin-top:12px">
+            <a href="post-requests.html" class="btn btn-ghost btn-sm btn-block">View All Requests →</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- OPEN DISPUTES -->
+      <div class="card" style="margin-bottom:24px">
+        <div class="card-header">
+          <span class="card-title">⚠️ Open Disputes</span>
+          <a href="tasks.html?tab=disputes" class="btn btn-ghost btn-sm">Manage</a>
+        </div>
+        <div id="disputeList">
+          <div style="text-align:center;padding:20px;color:var(--text-muted)">Loading...</div>
+        </div>
+      </div>
+
+      <!-- RECENT AUDIT ACTIVITY -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📜 Recent Activity</span>
+          <a href="audit-log.html" class="btn btn-ghost btn-sm">Full Log</a>
+        </div>
+        <div id="recentAudit">
+          <div style="text-align:center;padding:20px;color:var(--text-muted)">Loading...</div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+<div class="toast-container"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="../js/firebase-config.js"></script>
+<script src="../js/utils.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/tasks.js"></script>
+<script src="../js/credits.js"></script>
+<script src="../js/admin.js"></script>
+<script>
+  requireAdmin();
+
+  // Live clock
+  setInterval(() => {
+    document.getElementById('adminTime').textContent = new Date().toLocaleTimeString('en-IN');
+  }, 1000);
+
+  window.onUserReady = async function(userData) {
+    populateSidebarUser(userData);
+
+    // Load all stats
+    const stats = await loadAdminStats();
+    document.getElementById('statUsers').textContent    = stats.totalUsers;
+    document.getElementById('statTasks').textContent    = stats.totalTasks;
+    document.getElementById('statPending').textContent  = stats.pendingUsers + stats.pendingReqs;
+    document.getElementById('statDisputes').textContent = stats.openDisputes;
+
+    document.getElementById('statPendingUsers').textContent = `${stats.pendingUsers} users awaiting approval`;
+    document.getElementById('statActiveTasks').textContent  = `${stats.activeTasks} active right now`;
+    document.getElementById('statPendingReqs').textContent  = `${stats.pendingReqs} post requests`;
+    document.getElementById('statDisputeNote').textContent  = stats.openDisputes > 0 ? '⚠ Needs attention' : '✓ All clear';
+
+    // Badge on sidebar
+    if (stats.pendingReqs > 0) {
+      document.getElementById('reqsBadge').style.display = 'flex';
+      document.getElementById('reqsBadge').textContent = stats.pendingReqs;
+    }
+
+    await Promise.all([
+      loadPendingUsers(userData.id),
+      loadPendingReqs(userData.id),
+      loadDisputes(userData.id),
+      loadRecentAudit()
+    ]);
+  };
+
+  async function loadPendingUsers(adminId) {
+    const snap = await USERS().where('isApproved', '==', false).orderBy('createdAt', 'desc').limit(5).get();
+    document.getElementById('pendingUserCount').textContent = snap.size;
+    if (snap.empty) {
+      document.getElementById('pendingUserList').innerHTML =
+        '<div style="text-align:center;padding:16px;color:var(--green);font-size:14px">✅ No pending approvals</div>';
+      return;
+    }
+    document.getElementById('pendingUserList').innerHTML = snap.docs.map(d => {
+      const u = d.data();
+      return `
+        <div class="queue-item">
+          <div class="avatar avatar-sm" style="background:${stringToColor(u.name)}">${getInitials(u.name)}</div>
+          <div class="queue-item-info">
+            <h4>${u.name}</h4>
+            <p>${u.email} · ${ROLE_INFO[u.role]?.label || u.role}</p>
+          </div>
+          <div class="queue-actions">
+            <button class="btn btn-success btn-sm" onclick="doApproveUser('${d.id}')">✓ Approve</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  async function loadPendingReqs(adminId) {
+    const snap = await POST_REQUESTS().where('status', '==', 'pending').orderBy('createdAt', 'desc').limit(5).get();
+    document.getElementById('pendingReqCount').textContent = snap.size;
+    if (snap.empty) {
+      document.getElementById('pendingReqList').innerHTML =
+        '<div style="text-align:center;padding:16px;color:var(--green);font-size:14px">✅ No pending requests</div>';
+      return;
+    }
+    document.getElementById('pendingReqList').innerHTML = await Promise.all(snap.docs.map(async d => {
+      const r = d.data();
+      const userSnap = await USERS().doc(r.requestedBy).get();
+      const u = userSnap.exists ? userSnap.data() : null;
+      return `
+        <div class="queue-item">
+          <div class="avatar avatar-sm" style="background:${stringToColor(u?.name||'')}">
+            ${getInitials(u?.name||'?')}
+          </div>
+          <div class="queue-item-info">
+            <h4>${r.taskDraft?.title || 'Unnamed task'}</h4>
+            <p>by ${u?.name || 'Unknown'} · ${r.taskDraft?.reward || 0} CP</p>
+          </div>
+          <div class="queue-actions">
+            <a href="post-requests.html" class="btn btn-ghost btn-sm">Review</a>
+          </div>
+        </div>`;
+    })).then(rows => rows.join(''));
+  }
+
+  async function loadDisputes(adminId) {
+    const snap = await DISPUTES().where('status', '==', 'open').orderBy('createdAt', 'desc').limit(5).get();
+    if (snap.empty) {
+      document.getElementById('disputeList').innerHTML =
+        '<div style="text-align:center;padding:16px;color:var(--green);font-size:14px">✅ No open disputes</div>';
+      return;
+    }
+    document.getElementById('disputeList').innerHTML = snap.docs.map(d => {
+      const r = d.data();
+      return `
+        <div class="queue-item">
+          <div class="notif-icon" style="background:var(--red-soft)">⚠️</div>
+          <div class="queue-item-info">
+            <h4>Dispute on task ${r.taskId?.slice(0,8)}...</h4>
+            <p>Escrow: ${r.escrowAmount} CP · ${timeAgo(r.createdAt)}</p>
+          </div>
+          <div class="queue-actions">
+            <a href="tasks.html?dispute=${d.id}" class="btn btn-danger btn-sm">Resolve</a>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  async function loadRecentAudit() {
+    const logs = await loadAuditLog(8);
+    if (!logs.length) {
+      document.getElementById('recentAudit').innerHTML =
+        '<div style="text-align:center;padding:20px;color:var(--text-muted)">No activity yet</div>';
+      return;
+    }
+    document.getElementById('recentAudit').innerHTML = `
+      <div style="padding:0 4px">
+        ${logs.map(log => `
+          <div class="audit-entry">
+            <div class="audit-timeline">
+              <div class="audit-dot"></div>
+              <div class="audit-line"></div>
+            </div>
+            <div class="audit-content">
+              <div class="audit-action">
+                <span class="highlight">${log.action?.replace(/_/g, ' ')}</span>
+                on <code style="font-size:12px;background:var(--bg-2);padding:1px 6px;border-radius:4px">${log.targetId?.slice(0,12)}...</code>
+              </div>
+              <div class="audit-meta">
+                <span>${timeAgo(log.createdAt)}</span>
+                ${log.details ? `<span>· ${log.details.slice(0,60)}</span>` : ''}
+              </div>
+            </div>
+          </div>`).join('')}
+      </div>`;
+  }
+
+  async function doApproveUser(userId) {
+    try {
+      await approveUser(currentUserData.id, userId);
+      showToast('User approved!', 'success');
+      await loadPendingUsers(currentUserData.id);
+      // Refresh stats
+      const stats = await loadAdminStats();
+      document.getElementById('statPending').textContent = stats.pendingUsers + stats.pendingReqs;
+    } catch(e) { showToast(e.message, 'error'); }
+  }
+</script>
+</body>
+</html>

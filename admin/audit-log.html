@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audit Log — CampusFreelance Admin</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/user.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+<div class="app-layout admin-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-mark">🛡️</div>
+      <div class="sidebar-logo-text">Campus<span>Admin</span></div>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-user-card">
+        <div class="avatar" id="sidebarAvatar">?</div>
+        <div class="sidebar-user-info">
+          <h4 id="sidebarName">Loading...</h4>
+          <p id="sidebarRole">—</p>
+        </div>
+      </div>
+      <div style="margin-top:8px"><span class="admin-badge-chip">🛡 Admin Panel</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Overview</span>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a>
+      <span class="nav-section-label">Manage</span>
+      <a href="users.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-label">Users</span></a>
+      <a href="tasks.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-label">Tasks</span></a>
+      <a href="post-requests.html" class="nav-item"><span class="nav-icon">📝</span><span class="nav-label">Post Requests</span></a>
+      <a href="audit-log.html" class="nav-item active"><span class="nav-icon">📜</span><span class="nav-label">Audit Log</span></a>
+    </nav>
+    <div class="sidebar-bottom">
+      <button class="nav-item logout" onclick="signOut()" style="width:100%;text-align:left">
+        <span class="nav-icon">🚪</span><span class="nav-label">Sign Out</span>
+      </button>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <main class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('show')">☰</button>
+        <div class="page-title">Audit Log</div>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <!-- FILTERS -->
+      <div class="filter-bar" style="margin-bottom:24px">
+        <div class="search-bar" style="flex:1;min-width:200px">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="logSearch" placeholder="Search by action or target ID...">
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Action type:</span>
+          <select id="logTypeFilter" class="form-select" style="width:170px;padding:8px 12px">
+            <option value="">All Actions</option>
+            <option value="user">User Actions</option>
+            <option value="task">Task Actions</option>
+            <option value="credit">Credit Actions</option>
+            <option value="dispute">Dispute Actions</option>
+            <option value="privilege">Privilege Actions</option>
+          </select>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="loadLog()">↺ Refresh</button>
+      </div>
+
+      <!-- STATS ROW -->
+      <div class="grid-4" style="margin-bottom:24px">
+        <div class="stat-card">
+          <div class="stat-icon orange">📝</div>
+          <div class="stat-info">
+            <div class="stat-value" id="totalActions">—</div>
+            <div class="stat-label">Total Actions</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon blue">👥</div>
+          <div class="stat-info">
+            <div class="stat-value" id="userActions">—</div>
+            <div class="stat-label">User Actions</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">📋</div>
+          <div class="stat-info">
+            <div class="stat-value" id="taskActions">—</div>
+            <div class="stat-label">Task Actions</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon purple">💰</div>
+          <div class="stat-info">
+            <div class="stat-value" id="creditActions">—</div>
+            <div class="stat-label">Credit Actions</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOG TIMELINE -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📜 Activity Timeline</span>
+          <span id="logCount" style="font-size:13px;color:var(--text-muted)">—</span>
+        </div>
+        <div id="auditTimeline" style="padding:8px 0">
+          <div style="text-align:center;padding:32px;color:var(--text-muted)">Loading...</div>
+        </div>
+        <div style="text-align:center;margin-top:16px">
+          <button class="btn btn-ghost" id="loadMoreLogBtn" style="display:none" onclick="loadMore()">
+            Load More
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+<div class="toast-container"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="../js/firebase-config.js"></script>
+<script src="../js/utils.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/admin.js"></script>
+<script>
+  requireAdmin();
+
+  let allLogs   = [];
+  let logLimit  = 50;
+
+  const ACTION_CATEGORIES = {
+    user:      ['user_approved','user_suspended','user_unsuspended','user_deleted','role_changed'],
+    task:      ['task_deleted','post_request_approved','post_request_rejected'],
+    credit:    ['credit_topup'],
+    dispute:   ['dispute_resolved'],
+    privilege: ['privilege_granted','privilege_revoked']
+  };
+
+  const ACTION_LABELS = {
+    user_approved:          { label: 'User Approved',          icon: '✅', type: 'user'   },
+    user_suspended:         { label: 'User Suspended',          icon: '🚫', type: 'user'   },
+    user_unsuspended:       { label: 'User Reinstated',         icon: '↩️', type: 'user'   },
+    user_deleted:           { label: 'User Deleted',            icon: '🗑', type: 'user'   },
+    role_changed:           { label: 'Role Changed',            icon: '🔄', type: 'user'   },
+    task_deleted:           { label: 'Task Removed',            icon: '🗑', type: 'task'   },
+    post_request_approved:  { label: 'Post Request Approved',   icon: '✅', type: 'task'   },
+    post_request_rejected:  { label: 'Post Request Rejected',   icon: '❌', type: 'task'   },
+    credit_topup:           { label: 'Credits Allocated',       icon: '💰', type: 'credit' },
+    dispute_resolved:       { label: 'Dispute Resolved',        icon: '⚖️', type: 'dispute' },
+    privilege_granted:      { label: 'Privilege Granted',       icon: '🔓', type: 'privilege'},
+    privilege_revoked:      { label: 'Privilege Revoked',       icon: '🔒', type: 'privilege'}
+  };
+
+  window.onUserReady = async function(userData) {
+    populateSidebarUser(userData);
+    await loadLog();
+  };
+
+  async function loadLog() {
+    const snap = await AUDIT_LOGS().orderBy('createdAt', 'desc').limit(200).get();
+    allLogs    = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    // Stats
+    document.getElementById('totalActions').textContent  = allLogs.length;
+    document.getElementById('userActions').textContent   = allLogs.filter(l => ACTION_CATEGORIES.user.includes(l.action)).length;
+    document.getElementById('taskActions').textContent   = allLogs.filter(l => ACTION_CATEGORIES.task.includes(l.action)).length;
+    document.getElementById('creditActions').textContent = allLogs.filter(l => ACTION_CATEGORIES.credit.includes(l.action)).length;
+
+    filterLog();
+  }
+
+  function filterLog() {
+    const search   = document.getElementById('logSearch').value.toLowerCase();
+    const category = document.getElementById('logTypeFilter').value;
+
+    let filtered = allLogs;
+
+    if (category && ACTION_CATEGORIES[category]) {
+      filtered = filtered.filter(l => ACTION_CATEGORIES[category].includes(l.action));
+    }
+
+    if (search) {
+      filtered = filtered.filter(l =>
+        l.action?.toLowerCase().includes(search) ||
+        l.targetId?.toLowerCase().includes(search) ||
+        l.details?.toLowerCase().includes(search)
+      );
+    }
+
+    document.getElementById('logCount').textContent = `${filtered.length} entries`;
+    renderLog(filtered.slice(0, logLimit));
+    document.getElementById('loadMoreLogBtn').style.display =
+      filtered.length > logLimit ? 'inline-flex' : 'none';
+  }
+
+  async function renderLog(logs) {
+    const container = document.getElementById('auditTimeline');
+    if (!logs.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">📜</div>
+          <h3>No log entries found</h3>
+          <p>Actions will appear here as admins use the platform.</p>
+        </div>`;
+      return;
+    }
+
+    // Fetch admin names
+    const adminIds = [...new Set(logs.map(l => l.adminId).filter(Boolean))];
+    const adminMap = {};
+    await Promise.all(adminIds.map(async id => {
+      const snap = await USERS().doc(id).get();
+      if (snap.exists) adminMap[id] = snap.data().name;
+    }));
+
+    // Group by date
+    const groups = {};
+    logs.forEach(log => {
+      const d = log.createdAt?.toDate?.() || new Date();
+      const key = d.toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' });
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(log);
+    });
+
+    let html = '';
+    for (const [date, dayLogs] of Object.entries(groups)) {
+      html += `
+        <div style="font-size:12px;font-weight:700;color:var(--text-muted);letter-spacing:0.05em;
+                    padding:12px 0 8px;margin-top:8px;border-top:1px solid var(--border-light)">
+          ${date}
+        </div>`;
+      dayLogs.forEach((log, i) => {
+        const info = ACTION_LABELS[log.action] || { label: log.action?.replace(/_/g,' ') || '?', icon: '📌', type: 'system' };
+        const badgeClass = {
+          user: 'user', task: 'task', credit: 'credit',
+          dispute: 'user', privilege: 'system', system: 'system'
+        }[info.type] || 'system';
+
+        html += `
+          <div class="audit-entry">
+            <div class="audit-timeline">
+              <div class="audit-dot"></div>
+              ${i < dayLogs.length - 1 ? '<div class="audit-line"></div>' : ''}
+            </div>
+            <div class="audit-content">
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">
+                <span style="font-size:18px">${info.icon}</span>
+                <span style="font-weight:600;font-size:14px">${info.label}</span>
+                <span class="audit-type-badge ${badgeClass}">${info.type}</span>
+              </div>
+              <div class="audit-action">
+                Target: <code style="font-size:12px;background:var(--bg-2);padding:1px 7px;border-radius:4px">
+                  ${log.targetId?.slice(0,20)}...
+                </code>
+              </div>
+              ${log.details ? `<div style="font-size:13px;color:var(--text-muted);margin-top:2px">${log.details}</div>` : ''}
+              <div class="audit-meta">
+                <span>By: <strong>${adminMap[log.adminId] || 'Admin'}</strong></span>
+                <span>•</span>
+                <span>${formatDateTime(log.createdAt)}</span>
+              </div>
+            </div>
+          </div>`;
+      });
+    }
+
+    container.innerHTML = html;
+  }
+
+  function loadMore() {
+    logLimit += 50;
+    filterLog();
+  }
+
+  // Events
+  document.getElementById('logSearch').addEventListener('input', debounce(filterLog, 200));
+  document.getElementById('logTypeFilter').addEventListener('change', filterLog);
+</script>
+</body>
+</html>

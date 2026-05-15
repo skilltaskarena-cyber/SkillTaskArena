@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tasks — CampusFreelance Admin</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/user.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+<div class="app-layout admin-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-mark">🛡️</div>
+      <div class="sidebar-logo-text">Campus<span>Admin</span></div>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-user-card">
+        <div class="avatar" id="sidebarAvatar">?</div>
+        <div class="sidebar-user-info">
+          <h4 id="sidebarName">Loading...</h4>
+          <p id="sidebarRole">—</p>
+        </div>
+      </div>
+      <div style="margin-top:8px"><span class="admin-badge-chip">🛡 Admin Panel</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Overview</span>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a>
+      <span class="nav-section-label">Manage</span>
+      <a href="users.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-label">Users</span></a>
+      <a href="tasks.html" class="nav-item active"><span class="nav-icon">📋</span><span class="nav-label">Tasks</span></a>
+      <a href="post-requests.html" class="nav-item"><span class="nav-icon">📝</span><span class="nav-label">Post Requests</span></a>
+      <a href="audit-log.html" class="nav-item"><span class="nav-icon">📜</span><span class="nav-label">Audit Log</span></a>
+    </nav>
+    <div class="sidebar-bottom">
+      <button class="nav-item logout" onclick="signOut()" style="width:100%;text-align:left">
+        <span class="nav-icon">🚪</span><span class="nav-label">Sign Out</span>
+      </button>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <main class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('show')">☰</button>
+        <div class="page-title">Task Management</div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-primary btn-sm" onclick="openModal('createEventModal')">🎪 Create Event</button>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="tab-all-tasks">All Tasks</button>
+        <button class="tab-btn" data-tab="tab-events">🎪 Events</button>
+        <button class="tab-btn" data-tab="tab-disputes">⚠️ Disputes</button>
+      </div>
+
+      <!-- ALL TASKS -->
+      <div class="tab-content active" id="tab-all-tasks">
+        <div class="filter-bar" style="margin-bottom:16px">
+          <div class="search-bar" style="flex:1;min-width:200px">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="taskSearch" placeholder="Search tasks...">
+          </div>
+          <select id="taskStatusFilter" class="form-select" style="width:150px;padding:8px 12px">
+            <option value="">All Statuses</option>
+            <option value="open">Open</option>
+            <option value="in_progress">In Progress</option>
+            <option value="review">Under Review</option>
+            <option value="completed">Completed</option>
+            <option value="disputed">Disputed</option>
+          </select>
+          <button class="btn btn-ghost btn-sm" onclick="loadAllTasks()">↺ Refresh</button>
+        </div>
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Task</th>
+                  <th>Type</th>
+                  <th>Reward</th>
+                  <th>Status</th>
+                  <th>Posted</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="tasksTableBody">
+                <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted)">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- EVENTS -->
+      <div class="tab-content" id="tab-events">
+        <div id="eventsList">
+          <div style="text-align:center;padding:32px;color:var(--text-muted)">Loading events...</div>
+        </div>
+      </div>
+
+      <!-- DISPUTES -->
+      <div class="tab-content" id="tab-disputes">
+        <div id="disputesList">
+          <div style="text-align:center;padding:32px;color:var(--text-muted)">Loading disputes...</div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- CREATE EVENT MODAL -->
+<div class="modal-overlay" id="createEventModal">
+  <div class="modal" style="max-width:680px;max-height:90vh;overflow-y:auto">
+    <div class="modal-header">
+      <h3 class="modal-title">🎪 Create Event Task</h3>
+      <button class="modal-close">✕</button>
+    </div>
+
+    <div class="event-form-section">
+      <div class="event-form-section-title">📋 Basic Info</div>
+      <div class="form-group">
+        <label class="form-label">Event Title *</label>
+        <input type="text" id="evTitle" class="form-input" placeholder="e.g. Annual Tech Fest Website">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description *</label>
+        <textarea id="evDesc" class="form-textarea" rows="3" placeholder="What is this event about? What needs to be done?"></textarea>
+      </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Total Reward Pool (CP)</label>
+          <input type="number" id="evReward" class="form-input" placeholder="e.g. 500" min="10">
+          <span class="form-hint">Split equally among all collaborators</span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Deadline *</label>
+          <input type="date" id="evDeadline" class="form-input">
+        </div>
+      </div>
+    </div>
+
+    <div class="event-form-section">
+      <div class="event-form-section-title">👥 Collaborator Settings</div>
+      <div class="form-group">
+        <label class="form-label">Max Collaborators</label>
+        <div class="collaborator-limit-input">
+          <button class="limit-btn" type="button" onclick="changeLimit(-1)">−</button>
+          <input type="number" id="evLimit" class="form-input" value="5" min="2" max="50">
+          <button class="limit-btn" type="button" onclick="changeLimit(1)">+</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Assign Lead Collaborators (by email)</label>
+        <div style="display:flex;gap:8px">
+          <input type="email" id="leadEmailInput" class="form-input" placeholder="user@college.edu">
+          <button type="button" class="btn btn-ghost" onclick="addLead()">Add</button>
+        </div>
+        <div id="leadsList" style="margin-top:10px;display:flex;flex-direction:column;gap:6px"></div>
+      </div>
+    </div>
+
+    <div class="event-form-section">
+      <div class="event-form-section-title">🏷 Tags</div>
+      <div class="tag-input-wrap" id="evTagWrap">
+        <input type="text" id="evTagInput" placeholder="Add tags...">
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;justify-content:flex-end;padding-top:8px">
+      <button class="btn btn-ghost" onclick="closeModal('createEventModal')">Cancel</button>
+      <button class="btn btn-primary" id="createEventBtn" onclick="doCreateEvent()">🎪 Create Event</button>
+    </div>
+  </div>
+</div>
+
+<!-- DISPUTE RESOLUTION MODAL -->
+<div class="modal-overlay" id="resolveDisputeModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title" style="color:var(--red)">⚖️ Resolve Dispute</h3>
+      <button class="modal-close">✕</button>
+    </div>
+    <div id="disputeDetail" style="margin-bottom:20px"></div>
+    <div class="form-group">
+      <label class="form-label">Decision</label>
+      <div style="display:flex;flex-direction:column;gap:10px" id="decisionOptions">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:12px;border:1.5px solid var(--border);border-radius:var(--radius-md)">
+          <input type="radio" name="decision" value="full_release" checked>
+          <div><div style="font-weight:600">✅ Release Full Payment to Doer</div><div style="font-size:12px;color:var(--text-muted)">Work was done — pay the doer in full</div></div>
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:12px;border:1.5px solid var(--border);border-radius:var(--radius-md)">
+          <input type="radio" name="decision" value="refund">
+          <div><div style="font-weight:600">↩️ Refund Poster Fully</div><div style="font-size:12px;color:var(--text-muted)">Work not done — return credits to poster</div></div>
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:12px;border:1.5px solid var(--border);border-radius:var(--radius-md)">
+          <input type="radio" name="decision" value="split">
+          <div>
+            <div style="font-weight:600">⚖️ Split Credits</div>
+            <div style="font-size:12px;color:var(--text-muted)">
+              Doer ratio:
+              <input type="range" id="splitRatio" min="10" max="90" value="50" step="10" style="width:80px;margin:0 6px">
+              <span id="splitLabel">50% / 50%</span>
+            </div>
+          </div>
+        </label>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closeModal('resolveDisputeModal')">Cancel</button>
+      <button class="btn btn-primary" id="resolveBtn" onclick="doResolve()">⚖️ Apply Decision</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="../js/firebase-config.js"></script>
+<script src="../js/utils.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/tasks.js"></script>
+<script src="../js/credits.js"></script>
+<script src="../js/admin.js"></script>
+<script>
+  requireAdmin();
+  initTabs();
+
+  let eventTags = [];
+  let leadUIDs  = [];
+  let currentDisputeId = null;
+
+  window.onUserReady = async function(userData) {
+    populateSidebarUser(userData);
+    await Promise.all([loadAllTasks(), loadEvents(), loadDisputes()]);
+    handleQueryParams();
+  };
+
+  function handleQueryParams() {
+    const tab = getParam('tab');
+    if (tab === 'disputes') document.querySelector('[data-tab="tab-disputes"]')?.click();
+    const dispute = getParam('dispute');
+    if (dispute) openDispute(dispute);
+  }
+
+  // ALL TASKS
+  async function loadAllTasks() {
+    const snap = await TASKS().orderBy('createdAt', 'desc').limit(50).get();
+    let tasks  = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    const search = document.getElementById('taskSearch')?.value.toLowerCase();
+    const status = document.getElementById('taskStatusFilter')?.value;
+    if (search) tasks = tasks.filter(t => t.title?.toLowerCase().includes(search));
+    if (status) tasks = tasks.filter(t => t.status === status);
+
+    if (!tasks.length) {
+      document.getElementById('tasksTableBody').innerHTML =
+        '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted)">No tasks found</td></tr>';
+      return;
+    }
+
+    document.getElementById('tasksTableBody').innerHTML = tasks.map(t => `
+      <tr>
+        <td style="max-width:220px">
+          <div style="font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.title}</div>
+          <div style="font-size:12px;color:var(--text-muted)">${(t.description||'').slice(0,60)}...</div>
+        </td>
+        <td>
+          <div class="task-type-indicator">
+            <div class="type-dot ${t.type === 'event' ? 'event' : 'regular'}"></div>
+            ${t.type === 'event' ? 'Event' : 'Task'}
+          </div>
+        </td>
+        <td><span class="badge badge-orange">${t.reward} CP</span></td>
+        <td>${statusHTML(t.status)}</td>
+        <td style="font-size:13px;color:var(--text-muted)">${timeAgo(t.createdAt)}</td>
+        <td>
+          <button class="btn btn-danger btn-sm" onclick="doDeleteTask('${t.id}','${t.title?.replace(/'/g,'')}')">🗑</button>
+        </td>
+      </tr>`).join('');
+  }
+
+  document.getElementById('taskSearch')?.addEventListener('input', debounce(loadAllTasks, 200));
+  document.getElementById('taskStatusFilter')?.addEventListener('change', loadAllTasks);
+
+  // EVENTS
+  async function loadEvents() {
+    const snap = await TASKS().where('type', '==', 'event').orderBy('createdAt', 'desc').get();
+    const events = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    if (!events.length) {
+      document.getElementById('eventsList').innerHTML =
+        `<div class="empty-state"><div class="empty-state-icon">🎪</div><h3>No events yet</h3><p>Create your first collaborative event!</p></div>`;
+      return;
+    }
+
+    document.getElementById('eventsList').innerHTML = `
+      <div class="task-grid">
+        ${events.map(t => renderTaskCard(t, currentUserData, { hideAction: true })).join('')}
+      </div>`;
+  }
+
+  // DISPUTES
+  async function loadDisputes() {
+    const snap = await DISPUTES().orderBy('createdAt', 'desc').get();
+    const all  = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    if (!all.length) {
+      document.getElementById('disputesList').innerHTML =
+        `<div class="empty-state"><div class="empty-state-icon">✅</div><h3>No disputes</h3><p>The platform is running smoothly!</p></div>`;
+      return;
+    }
+
+    document.getElementById('disputesList').innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:12px">
+        ${all.map(d => `
+          <div class="card" style="border-left:4px solid ${d.status==='open'?'var(--red)':'var(--green)'}">
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+              <div style="flex:1">
+                <div style="display:flex;gap:8px;margin-bottom:4px">
+                  ${statusHTML(d.status)}
+                  <span class="badge badge-orange">⚠ ${d.escrowAmount} CP in escrow</span>
+                </div>
+                <div style="font-size:14px;font-weight:600">Task: ${d.taskId?.slice(0,12)}...</div>
+                <div style="font-size:13px;color:var(--text-muted);margin-top:4px">"${(d.reason||'').slice(0,100)}"</div>
+                <div style="font-size:12px;color:var(--text-light)">${timeAgo(d.createdAt)}</div>
+              </div>
+              ${d.status === 'open'
+                ? `<button class="btn btn-primary btn-sm" onclick="openDispute('${d.id}')">⚖️ Resolve</button>`
+                : `<span class="badge badge-gray">Decision: ${d.adminDecision || '—'}</span>`}
+            </div>
+          </div>`).join('')}
+      </div>`;
+  }
+
+  async function openDispute(disputeId) {
+    currentDisputeId = disputeId;
+    const snap = await DISPUTES().doc(disputeId).get();
+    const d = snap.data();
+    document.getElementById('disputeDetail').innerHTML = `
+      <div style="padding:14px;background:var(--red-soft);border-radius:var(--radius-md);border:1px solid #fecaca">
+        <div style="font-weight:600;margin-bottom:6px">Task ${d.taskId?.slice(0,12)}...</div>
+        <div style="font-size:13px;color:var(--text-muted)">"${d.reason}"</div>
+        <div style="font-size:12px;margin-top:8px;font-weight:600;color:var(--red)">Escrow: ${d.escrowAmount} CP</div>
+      </div>`;
+    openModal('resolveDisputeModal');
+  }
+
+  document.getElementById('splitRatio')?.addEventListener('input', function() {
+    const v = parseInt(this.value);
+    document.getElementById('splitLabel').textContent = `${v}% doer / ${100-v}% poster`;
+  });
+
+  async function doResolve() {
+    const decision = document.querySelector('input[name="decision"]:checked')?.value;
+    const ratio    = parseInt(document.getElementById('splitRatio').value) / 100;
+    const btn      = document.getElementById('resolveBtn');
+    setLoading(btn, true, 'Resolving...');
+    try {
+      await resolveDispute(currentUserData.id, currentDisputeId, decision, ratio);
+      closeModal('resolveDisputeModal');
+      showToast('Dispute resolved!', 'success');
+      await loadDisputes();
+    } catch(e) { showToast(e.message, 'error'); }
+    setLoading(btn, false, '⚖️ Apply Decision');
+  }
+
+  async function doDeleteTask(taskId, title) {
+    if (!confirm(`Delete task "${title}"? This action cannot be undone.`)) return;
+    try {
+      await adminDeleteTask(currentUserData.id, taskId, 'Removed by admin');
+      showToast('Task removed.', 'info');
+      await loadAllTasks();
+    } catch(e) { showToast(e.message, 'error'); }
+  }
+
+  // EVENT CREATION
+  function changeLimit(delta) {
+    const inp = document.getElementById('evLimit');
+    inp.value = Math.max(2, Math.min(50, parseInt(inp.value||5) + delta));
+  }
+
+  async function addLead() {
+    const email = document.getElementById('leadEmailInput').value.trim();
+    if (!email) { showToast('Enter an email.', 'warning'); return; }
+    const snap = await USERS().where('email', '==', email).get();
+    if (snap.empty) { showToast('No user found with that email.', 'error'); return; }
+    const userId = snap.docs[0].id;
+    const name   = snap.docs[0].data().name;
+    if (leadUIDs.includes(userId)) { showToast('Already added.', 'warning'); return; }
+    leadUIDs.push(userId);
+    document.getElementById('leadEmailInput').value = '';
+    const card = document.createElement('div');
+    card.className = 'lead-selected-card';
+    card.innerHTML = `
+      <div class="user-row">
+        <div class="avatar avatar-sm" style="background:${stringToColor(name)}">${getInitials(name)}</div>
+        <div class="user-row-info"><h4>${name}</h4><p>${email}</p></div>
+      </div>
+      <span class="badge badge-orange">Lead</span>
+      <button type="button" onclick="removeLead('${userId}',this.parentElement)" style="color:var(--red);font-size:16px">✕</button>`;
+    document.getElementById('leadsList').appendChild(card);
+  }
+
+  function removeLead(uid, el) {
+    leadUIDs = leadUIDs.filter(id => id !== uid);
+    el.remove();
+  }
+
+  // Init event tag input
+  window.onUserReady = async function(userData) {
+    populateSidebarUser(userData);
+    initTagInput('evTagWrap', 'evTagInput', eventTags);
+    // Set min deadline
+    const d = new Date(); d.setDate(d.getDate()+1);
+    document.getElementById('evDeadline').min = d.toISOString().split('T')[0];
+    await Promise.all([loadAllTasks(), loadEvents(), loadDisputes()]);
+    handleQueryParams();
+  };
+
+  async function doCreateEvent() {
+    const title    = document.getElementById('evTitle').value.trim();
+    const desc     = document.getElementById('evDesc').value.trim();
+    const reward   = parseInt(document.getElementById('evReward').value);
+    const deadline = document.getElementById('evDeadline').value;
+    const limit    = parseInt(document.getElementById('evLimit').value);
+
+    if (!title)    { showToast('Enter a title.', 'warning'); return; }
+    if (!desc)     { showToast('Enter a description.', 'warning'); return; }
+    if (!reward)   { showToast('Enter a reward.', 'warning'); return; }
+    if (!deadline) { showToast('Set a deadline.', 'warning'); return; }
+
+    const btn = document.getElementById('createEventBtn');
+    setLoading(btn, true, 'Creating...');
+    try {
+      await createEventTask({
+        title, description: desc, reward,
+        deadline: new Date(deadline),
+        collaboratorLimit: limit,
+        tags: [...eventTags],
+        leads: leadUIDs
+      }, currentUserData.id);
+      closeModal('createEventModal');
+      showToast('Event created!', 'success');
+      // Reset
+      eventTags = []; leadUIDs = [];
+      document.getElementById('leadsList').innerHTML = '';
+      await loadEvents();
+    } catch(e) { showToast(e.message, 'error'); }
+    setLoading(btn, false, '🎪 Create Event');
+  }
+</script>
+</body>
+</html>
