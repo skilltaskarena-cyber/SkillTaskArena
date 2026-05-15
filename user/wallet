@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wallet — CampusFreelance</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/user.css">
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-mark">🎓</div>
+      <div class="sidebar-logo-text">Campus<span>Freelance</span></div>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-user-card">
+        <div class="avatar" id="sidebarAvatar">?</div>
+        <div class="sidebar-user-info">
+          <h4 id="sidebarName">Loading...</h4>
+          <p id="sidebarRole">—</p>
+        </div>
+      </div>
+      <div class="sidebar-credits">💰 <span id="sidebarCredits">—</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Main</span>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">🏠</span><span class="nav-label">Dashboard</span></a>
+      <a href="browse-tasks.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-label">Browse Tasks</span></a>
+      <a href="post-task.html" class="nav-item"><span class="nav-icon">➕</span><span class="nav-label">Post a Task</span></a>
+      <a href="my-tasks.html" class="nav-item"><span class="nav-icon">📁</span><span class="nav-label">My Tasks</span></a>
+      <span class="nav-section-label">Account</span>
+      <a href="profile.html" class="nav-item"><span class="nav-icon">👤</span><span class="nav-label">Profile</span></a>
+      <a href="notifications.html" class="nav-item"><span class="nav-icon">🔔</span><span class="nav-label">Notifications</span></a>
+      <a href="wallet.html" class="nav-item active"><span class="nav-icon">💰</span><span class="nav-label">Wallet</span></a>
+    </nav>
+    <div class="sidebar-bottom">
+      <button class="nav-item logout" onclick="signOut()" style="width:100%;text-align:left">
+        <span class="nav-icon">🚪</span><span class="nav-label">Sign Out</span>
+      </button>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <main class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('show')">☰</button>
+        <div class="page-title">Wallet</div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-notif" onclick="window.location.href='notifications.html'">🔔</div>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <!-- WALLET HERO -->
+      <div class="wallet-hero">
+        <div>
+          <div class="wallet-balance-label">Available Balance</div>
+          <div class="wallet-balance"><span>CP</span> <span id="heroBalance">—</span></div>
+          <div class="wallet-sub-balances">
+            <div class="wallet-sub">
+              <label>🔒 In Escrow</label>
+              <span id="escrowBalance">—</span>
+            </div>
+            <div class="wallet-sub">
+              <label>📈 Total Earned</label>
+              <span id="totalEarned">—</span>
+            </div>
+            <div class="wallet-sub">
+              <label>📉 Total Spent</label>
+              <span id="totalSpent">—</span>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-primary" style="margin-top:20px" onclick="openModal('topupModal')">
+          💸 Request Top-up
+        </button>
+      </div>
+
+      <!-- CREDIT BREAKDOWN -->
+      <div class="grid-3" style="margin-bottom:24px">
+        <div class="stat-card">
+          <div class="stat-icon green">✅</div>
+          <div class="stat-info">
+            <div class="stat-value" id="tasksCompleted">—</div>
+            <div class="stat-label">Tasks Completed</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon orange">📤</div>
+          <div class="stat-info">
+            <div class="stat-value" id="tasksPosted">—</div>
+            <div class="stat-label">Tasks Posted</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon blue">⭐</div>
+          <div class="stat-info">
+            <div class="stat-value" id="avgRating">—</div>
+            <div class="stat-label">Average Rating</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TRANSACTIONS -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Transaction History</span>
+          <div style="display:flex;gap:8px">
+            <select id="txFilter" class="form-select" style="width:150px;padding:6px 10px;font-size:13px" onchange="filterTx()">
+              <option value="">All Types</option>
+              <option value="earn">Earned</option>
+              <option value="spend">Spent</option>
+              <option value="escrow_lock">Escrowed</option>
+              <option value="escrow_release">Released</option>
+              <option value="admin_topup">Top-up</option>
+              <option value="bonus">Bonus</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Transaction</th>
+                <th>Amount</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody id="txBody">
+              <tr><td colspan="3" style="text-align:center;padding:24px;color:var(--text-muted)">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="txEmpty" style="display:none"></div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- TOP-UP REQUEST MODAL -->
+<div class="modal-overlay" id="topupModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title">Request Credit Top-up</h3>
+      <button class="modal-close">✕</button>
+    </div>
+    <div class="alert alert-info" style="margin-bottom:20px">
+      💡 Top-up requests go to the admin for review and manual allocation.
+    </div>
+    <div class="form-group">
+      <label class="form-label">Amount Requested (CP)</label>
+      <input type="number" id="topupAmount" class="form-input" placeholder="e.g. 100" min="10">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Reason</label>
+      <textarea id="topupReason" class="form-textarea" placeholder="Why do you need credits? e.g. posting a task for my project..."></textarea>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closeModal('topupModal')">Cancel</button>
+      <button class="btn btn-primary" id="topupSubmitBtn" onclick="submitTopupRequest()">Send Request</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="../js/firebase-config.js"></script>
+<script src="../js/utils.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/credits.js"></script>
+<script>
+  requireAuth();
+
+  let allTransactions = [];
+
+  window.onUserReady = async function(userData) {
+    populateSidebarUser(userData);
+
+    // Hero balances
+    document.getElementById('heroBalance').textContent  = (userData.creditsAvailable || 0).toLocaleString();
+    document.getElementById('escrowBalance').textContent = `${(userData.creditsEscrow || 0).toLocaleString()} CP`;
+    document.getElementById('totalEarned').textContent   = `${(userData.creditsEarned || 0).toLocaleString()} CP`;
+    document.getElementById('totalSpent').textContent    = `${(userData.creditsSpent  || 0).toLocaleString()} CP`;
+    document.getElementById('tasksCompleted').textContent = userData.completedTasks || 0;
+    document.getElementById('avgRating').textContent = userData.rating
+      ? `${userData.rating.toFixed(1)} ★` : '—';
+
+    // Count posted tasks
+    const postedSnap = await TASKS().where('postedBy', '==', userData.id).get();
+    document.getElementById('tasksPosted').textContent = postedSnap.size;
+
+    // Load transactions
+    await loadTransactions(userData.id);
+  };
+
+  async function loadTransactions(userId) {
+    try {
+      allTransactions = await getUserTransactions(userId, 50);
+      renderTx(allTransactions);
+    } catch(e) {
+      document.getElementById('txBody').innerHTML =
+        '<tr><td colspan="3" class="alert alert-error">Failed to load transactions.</td></tr>';
+    }
+  }
+
+  function renderTx(txs) {
+    if (!txs.length) {
+      document.getElementById('txBody').innerHTML =
+        '<tr><td colspan="3" style="text-align:center;padding:40px;color:var(--text-muted)">No transactions yet</td></tr>';
+      return;
+    }
+    document.getElementById('txBody').innerHTML = txs.map(tx => renderTxRow(tx)).join('');
+  }
+
+  function filterTx() {
+    const val = document.getElementById('txFilter').value;
+    const filtered = val ? allTransactions.filter(t => t.type === val) : allTransactions;
+    renderTx(filtered);
+  }
+
+  async function submitTopupRequest() {
+    const amount = parseInt(document.getElementById('topupAmount').value);
+    const reason = document.getElementById('topupReason').value.trim();
+    if (!amount || amount < 10) { showToast('Enter a valid amount (min 10 CP).', 'warning'); return; }
+    if (!reason) { showToast('Please provide a reason.', 'warning'); return; }
+
+    const btn = document.getElementById('topupSubmitBtn');
+    setLoading(btn, true, 'Sending...');
+    try {
+      // Send notification to admins
+      await NOTIFICATIONS().add({
+        userId:    'admin',
+        message:   `${currentUserData.name} requested ${amount} CP top-up. Reason: ${reason}`,
+        type:      'topup_request',
+        fromUser:  currentUserData.id,
+        amount,
+        isRead:    false,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      closeModal('topupModal');
+      showToast('Top-up request sent to admin!', 'success');
+    } catch(e) {
+      showToast(e.message, 'error');
+    }
+    setLoading(btn, false, 'Send Request');
+  }
+</script>
+</body>
+</html>
