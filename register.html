@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register — CampusFreelance</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+<div class="auth-page">
+
+  <!-- LEFT PANEL -->
+  <div class="auth-panel">
+    <div class="auth-logo">
+      <div class="auth-logo-mark">🎓</div>
+      <div class="auth-logo-text">Campus<span>Freelance</span></div>
+    </div>
+    <div class="auth-panel-content">
+      <h1>Join your<br>campus<br><span>marketplace</span></h1>
+      <p>Create tasks, collaborate on events, earn credits and build a reputation that follows you through college.</p>
+      <div class="auth-features">
+        <div class="auth-feature">
+          <div class="auth-feature-icon">🎁</div>
+          <span>Free starter credits on signup based on your role</span>
+        </div>
+        <div class="auth-feature">
+          <div class="auth-feature-icon">🔐</div>
+          <span>Admin-verified accounts for a trusted community</span>
+        </div>
+        <div class="auth-feature">
+          <div class="auth-feature-icon">⭐</div>
+          <span>Build a reputation that carries to your career</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FORM PANEL -->
+  <div class="auth-form-panel">
+    <div class="auth-form-wrap" style="max-width:480px">
+
+      <!-- STEP 1: FORM -->
+      <div id="step1">
+        <h2 class="auth-form-title">Create Account</h2>
+        <p class="auth-form-subtitle">
+          Already have an account? <a href="login.html">Sign in</a>
+        </p>
+
+        <div id="registerAlert" class="alert alert-error" style="display:none;margin-bottom:20px">
+          <span>⚠</span><span id="registerAlertMsg"></span>
+        </div>
+
+        <form id="registerForm" novalidate>
+          <div class="form-group">
+            <label class="form-label">Full Name</label>
+            <div class="input-group">
+              <span class="input-icon">👤</span>
+              <input type="text" id="regName" class="form-input" placeholder="Your full name">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <div class="input-group">
+              <span class="input-icon">✉</span>
+              <input type="email" id="regEmail" class="form-input" placeholder="you@college.edu">
+            </div>
+            <span class="form-hint">Use your college email for faster approval</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">I am a...</label>
+            <div class="role-grid">
+              <div class="role-option">
+                <input type="radio" name="role" id="roleStudent" value="student" checked>
+                <label class="role-label" for="roleStudent">
+                  <span class="role-icon">🎓</span>
+                  <span class="role-name">Student</span>
+                </label>
+              </div>
+              <div class="role-option">
+                <input type="radio" name="role" id="roleTeaching" value="teaching_staff">
+                <label class="role-label" for="roleTeaching">
+                  <span class="role-icon">👨‍🏫</span>
+                  <span class="role-name">Teaching Staff</span>
+                </label>
+              </div>
+              <div class="role-option">
+                <input type="radio" name="role" id="roleNonTeaching" value="nonteaching_staff">
+                <label class="role-label" for="roleNonTeaching">
+                  <span class="role-icon">🏢</span>
+                  <span class="role-name">Non-Teaching</span>
+                </label>
+              </div>
+              <div class="role-option">
+                <input type="radio" name="role" id="roleExternal" value="external">
+                <label class="role-label" for="roleExternal">
+                  <span class="role-icon">🌐</span>
+                  <span class="role-name">External User</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- COLLEGE ID (hidden for external) -->
+          <div class="form-group" id="collegeIdGroup">
+            <label class="form-label">College ID / Employee ID</label>
+            <div class="input-group">
+              <span class="input-icon">🪪</span>
+              <input type="text" id="regCollegeId" class="form-input" placeholder="e.g. CS2021001">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Department</label>
+            <select id="regDepartment" class="form-select">
+              <option value="">Select department</option>
+              <option value="computer_science">Computer Science</option>
+              <option value="engineering">Engineering</option>
+              <option value="arts">Arts & Humanities</option>
+              <option value="commerce">Commerce</option>
+              <option value="sciences">Sciences</option>
+              <option value="management">Management</option>
+              <option value="administration">Administration</option>
+              <option value="external">External / Other</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <div class="input-group">
+              <span class="input-icon">🔑</span>
+              <input type="password" id="regPassword" class="form-input"
+                placeholder="Min 6 characters" autocomplete="new-password">
+              <button type="button" id="toggleRegPass"
+                style="position:absolute;right:12px;font-size:18px;color:var(--text-light);background:none;border:none;cursor:pointer">
+                👁
+              </button>
+            </div>
+            <div class="password-strength">
+              <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+              <span class="strength-text" id="strengthText"></span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Confirm Password</label>
+            <div class="input-group">
+              <span class="input-icon">🔑</span>
+              <input type="password" id="regConfirmPass" class="form-input"
+                placeholder="Repeat your password" autocomplete="new-password">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="terms-check">
+              <input type="checkbox" id="termsCheck">
+              <span>I agree to the platform rules and understand this is a college-monitored system.</span>
+            </label>
+          </div>
+
+          <!-- STARTER CREDITS PREVIEW -->
+          <div id="creditsPreview" class="alert alert-info" style="margin-bottom:16px">
+            <span>💰</span>
+            <span>As a <strong id="roleLabel">Student</strong>, you'll receive <strong id="creditsLabel">100 CP</strong> starter credits.</span>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-lg btn-block" id="registerBtn">
+            Create Account →
+          </button>
+        </form>
+      </div>
+
+      <!-- STEP 2: PENDING / SUCCESS -->
+      <div id="step2" style="display:none">
+        <div class="pending-notice">
+          <div class="pending-icon" id="successIcon">⏳</div>
+          <h2 id="successTitle">Account Created!</h2>
+          <p style="color:var(--text-muted);margin:12px 0 24px" id="successMsg">
+            Your account is pending admin approval. You'll be notified once approved.
+          </p>
+          <a href="login.html" class="btn btn-primary">Go to Login</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/credits.js"></script>
+<script>
+  requireGuest();
+
+  // Show/hide college ID based on role
+  document.querySelectorAll('input[name="role"]').forEach(r => {
+    r.addEventListener('change', () => {
+      const val = r.value;
+      document.getElementById('collegeIdGroup').style.display =
+        val === 'external' ? 'none' : '';
+
+      const info = ROLE_INFO[val] || {};
+      document.getElementById('roleLabel').textContent   = info.label || val;
+      document.getElementById('creditsLabel').textContent = `${STARTER_CREDITS[val] || 0} CP`;
+    });
+  });
+
+  // Password strength
+  document.getElementById('regPassword').addEventListener('input', function() {
+    const val = this.value;
+    const fill = document.getElementById('strengthFill');
+    const text = document.getElementById('strengthText');
+    if (val.length < 4)      { fill.className = 'strength-fill weak';   text.textContent = 'Too weak'; }
+    else if (val.length < 8) { fill.className = 'strength-fill medium'; text.textContent = 'Medium'; }
+    else                     { fill.className = 'strength-fill strong'; text.textContent = 'Strong ✓'; }
+  });
+
+  // Toggle passwords
+  document.getElementById('toggleRegPass').addEventListener('click', () => {
+    const inp = document.getElementById('regPassword');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+  });
+
+  // Form submit
+  document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const alertBox = document.getElementById('registerAlert');
+    const alertMsg = document.getElementById('registerAlertMsg');
+
+    const name        = document.getElementById('regName').value.trim();
+    const email       = document.getElementById('regEmail').value.trim();
+    const role        = document.querySelector('input[name="role"]:checked')?.value;
+    const collegeId   = document.getElementById('regCollegeId').value.trim();
+    const department  = document.getElementById('regDepartment').value;
+    const password    = document.getElementById('regPassword').value;
+    const confirmPass = document.getElementById('regConfirmPass').value;
+    const terms       = document.getElementById('termsCheck').checked;
+
+    // Validate
+    if (!name)        { showAlert('Please enter your full name.'); return; }
+    if (!email)       { showAlert('Please enter your email.'); return; }
+    if (!role)        { showAlert('Please select your role.'); return; }
+    if (!department)  { showAlert('Please select your department.'); return; }
+    if (!password)    { showAlert('Please enter a password.'); return; }
+    if (password.length < 6) { showAlert('Password must be at least 6 characters.'); return; }
+    if (password !== confirmPass) { showAlert('Passwords do not match.'); return; }
+    if (!terms) { showAlert('Please agree to the platform rules.'); return; }
+
+    function showAlert(msg) {
+      alertMsg.textContent = msg;
+      alertBox.style.display = 'flex';
+    }
+
+    alertBox.style.display = 'none';
+
+    const btn = document.getElementById('registerBtn');
+    setLoading(btn, true, 'Creating account...');
+
+    try {
+      const result = await registerUser({ name, email, password, role, collegeId, department });
+
+      document.getElementById('step1').style.display = 'none';
+      document.getElementById('step2').style.display = '';
+
+      if (result.isApproved) {
+        document.getElementById('successIcon').textContent = '🎉';
+        document.getElementById('successTitle').textContent = 'Welcome aboard!';
+        document.getElementById('successMsg').textContent =
+          `Your account is approved. You received ${STARTER_CREDITS[role]} CP starter credits. Log in to get started!`;
+      }
+
+    } catch (err) {
+      setLoading(btn, false, 'Create Account →');
+      showAlert(friendlyAuthError(err.code) || err.message);
+    }
+  });
+</script>
+</body>
+</html>

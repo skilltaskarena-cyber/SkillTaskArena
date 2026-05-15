@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — CampusFreelance</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+<div class="auth-page">
+
+  <!-- LEFT PANEL -->
+  <div class="auth-panel">
+    <div class="auth-logo">
+      <div class="auth-logo-mark">🎓</div>
+      <div class="auth-logo-text">Campus<span>Freelance</span></div>
+    </div>
+    <div class="auth-panel-content">
+      <h1>Welcome<br>back to your<br><span>campus hub</span></h1>
+      <p>Pick up where you left off. Your tasks, credits and reputation are waiting.</p>
+      <div class="auth-features">
+        <div class="auth-feature">
+          <div class="auth-feature-icon">💰</div>
+          <span>Your campus credits are safe in escrow</span>
+        </div>
+        <div class="auth-feature">
+          <div class="auth-feature-icon">📋</div>
+          <span>New tasks posted daily from staff & students</span>
+        </div>
+        <div class="auth-feature">
+          <div class="auth-feature-icon">🎪</div>
+          <span>Event collaborations open for applications</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FORM PANEL -->
+  <div class="auth-form-panel">
+    <div class="auth-form-wrap">
+      <h2 class="auth-form-title">Sign in</h2>
+      <p class="auth-form-subtitle">
+        Don't have an account? <a href="register.html">Create one</a>
+      </p>
+
+      <!-- ERROR ALERT -->
+      <div id="loginAlert" class="alert alert-error" style="display:none;margin-bottom:20px">
+        <span>⚠</span>
+        <span id="loginAlertMsg"></span>
+      </div>
+
+      <!-- FORM -->
+      <form id="loginForm" novalidate>
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <div class="input-group">
+            <span class="input-icon">✉</span>
+            <input type="email" id="loginEmail" class="form-input"
+              placeholder="you@college.edu" autocomplete="email">
+          </div>
+          <span class="form-error" id="emailErr"></span>
+        </div>
+
+        <div class="form-group">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <label class="form-label" style="margin:0">Password</label>
+            <a href="#" id="forgotLink" style="font-size:13px;color:var(--accent)">Forgot password?</a>
+          </div>
+          <div class="input-group">
+            <span class="input-icon">🔑</span>
+            <input type="password" id="loginPassword" class="form-input"
+              placeholder="••••••••" autocomplete="current-password">
+            <button type="button" id="togglePass"
+              style="position:absolute;right:12px;font-size:18px;color:var(--text-light);background:none;border:none;cursor:pointer">
+              👁
+            </button>
+          </div>
+          <span class="form-error" id="passErr"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg btn-block" id="loginBtn">
+          Sign In →
+        </button>
+      </form>
+
+      <div class="divider-text" style="margin:24px 0">or</div>
+
+      <div style="text-align:center">
+        <p style="font-size:13px;color:var(--text-muted)">Are you an admin?</p>
+        <a href="admin/dashboard.html" class="btn btn-ghost btn-sm" style="margin-top:6px">
+          🛡️ Go to Admin Panel
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/auth.js"></script>
+<script>
+  // Redirect if already logged in
+  requireGuest();
+
+  const form      = document.getElementById('loginForm');
+  const loginBtn  = document.getElementById('loginBtn');
+  const alertBox  = document.getElementById('loginAlert');
+  const alertMsg  = document.getElementById('loginAlertMsg');
+
+  // Check for error params
+  const urlErr = new URLSearchParams(window.location.search).get('err');
+  if (urlErr === 'suspended') showLoginAlert('Your account has been suspended. Contact admin.');
+  if (urlErr === 'pending')   showLoginAlert('Your account is pending admin approval.');
+
+  function showLoginAlert(msg) {
+    alertMsg.textContent = msg;
+    alertBox.style.display = 'flex';
+  }
+
+  // Toggle password visibility
+  document.getElementById('togglePass').addEventListener('click', () => {
+    const inp = document.getElementById('loginPassword');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+  });
+
+  // Forgot password
+  document.getElementById('forgotLink').addEventListener('click', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value.trim();
+    if (!email) { showLoginAlert('Enter your email first to reset password.'); return; }
+    try {
+      await resetPassword(email);
+      showToast('Password reset email sent!', 'success');
+    } catch(err) {
+      showLoginAlert(friendlyAuthError(err.code));
+    }
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    alertBox.style.display = 'none';
+
+    const email    = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+
+    if (!email)    { showLoginAlert('Please enter your email.'); return; }
+    if (!password) { showLoginAlert('Please enter your password.'); return; }
+
+    setLoading(loginBtn, true, 'Signing in...');
+
+    try {
+      const userData = await loginUser(email, password);
+
+      if (!userData.isApproved) {
+        setLoading(loginBtn, false, 'Sign In →');
+        showLoginAlert('Your account is pending admin approval. Please check back later.');
+        await auth.signOut();
+        return;
+      }
+
+      showToast(`Welcome back, ${userData.name}!`, 'success');
+
+      // Redirect based on role
+      setTimeout(() => {
+        if (['admin', 'super_admin'].includes(userData.role)) {
+          window.location.href = 'admin/dashboard.html';
+        } else {
+          window.location.href = 'user/dashboard.html';
+        }
+      }, 800);
+
+    } catch (err) {
+      setLoading(loginBtn, false, 'Sign In →');
+      showLoginAlert(friendlyAuthError(err.code) || err.message);
+    }
+  });
+</script>
+</body>
+</html>
