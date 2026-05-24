@@ -279,16 +279,34 @@ async function sendEventInvite(taskId, fromUserId, toUserId, message) {
 }
 
 // ─── LOAD OPEN TASKS ──────────────────────────────────────
-// FIX: single where + single orderBy — no compound index needed
+// Uses orderBy('createdAt') only — no composite index needed.
+// Falls back to unordered query if index is missing (new project).
 async function loadOpenTasks({ tags, search, type, limit = 50 } = {}) {
-  // Base query: only open tasks, ordered by newest first
-  const snap = await TASKS()
-    .where('status', '==', TASK_STATUS.OPEN)
-    .orderBy('createdAt', 'desc')
-    .limit(limit)
-    .get();
+  let snap;
+  try {
+    // Preferred: ordered query (requires single-field index on createdAt, auto-created by Firestore)
+    snap = await TASKS()
+      .where('status', '==', TASK_STATUS.OPEN)
+      .orderBy('createdAt', 'desc')
+      .limit(limit)
+      .get();
+  } catch (indexErr) {
+    // Fallback: no orderBy — works on any fresh Firestore project with no indexes
+    console.warn('loadOpenTasks: falling back to unordered query.', indexErr.message);
+    snap = await TASKS()
+      .where('status', '==', TASK_STATUS.OPEN)
+      .limit(limit)
+      .get();
+  }
 
   let tasks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+  // Sort in JS by createdAt descending (works whether or not Firestore ordered it)
+  tasks.sort((a, b) => {
+    const ta = a.createdAt?.toMillis?.() ?? a.createdAt?.seconds * 1000 ?? 0;
+    const tb = b.createdAt?.toMillis?.() ?? b.createdAt?.seconds * 1000 ?? 0;
+    return tb - ta;
+  });
 
   // All extra filtering in JS — no extra Firestore indexes needed
   if (type) {
@@ -311,22 +329,35 @@ async function loadOpenTasks({ tags, search, type, limit = 50 } = {}) {
 }
 
 // ─── LOAD MY POSTED TASKS ─────────────────────────────────
-// FIX: single where only, no orderBy on different field
 async function loadMyPostedTasks(userId) {
-  const snap = await TASKS()
-    .where('postedBy', '==', userId)
-    .orderBy('createdAt', 'desc')
-    .get();
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  let snap;
+  try {
+    snap = await TASKS().where('postedBy', '==', userId).orderBy('createdAt', 'desc').get();
+  } catch (e) {
+    snap = await TASKS().where('postedBy', '==', userId).get();
+  }
+  const tasks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  return tasks.sort((a, b) => {
+    const ta = a.createdAt?.toMillis?.() ?? a.createdAt?.seconds * 1000 ?? 0;
+    const tb = b.createdAt?.toMillis?.() ?? b.createdAt?.seconds * 1000 ?? 0;
+    return tb - ta;
+  });
 }
 
 // ─── LOAD MY ASSIGNED TASKS ───────────────────────────────
 async function loadMyAssignedTasks(userId) {
-  const snap = await TASKS()
-    .where('assignedTo', '==', userId)
-    .orderBy('createdAt', 'desc')
-    .get();
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  let snap;
+  try {
+    snap = await TASKS().where('assignedTo', '==', userId).orderBy('createdAt', 'desc').get();
+  } catch (e) {
+    snap = await TASKS().where('assignedTo', '==', userId).get();
+  }
+  const tasks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  return tasks.sort((a, b) => {
+    const ta = a.createdAt?.toMillis?.() ?? a.createdAt?.seconds * 1000 ?? 0;
+    const tb = b.createdAt?.toMillis?.() ?? b.createdAt?.seconds * 1000 ?? 0;
+    return tb - ta;
+  });
 }
 
 // ─── RENDER TASK CARD ─────────────────────────────────────
